@@ -29,14 +29,14 @@ def _norm(s: str) -> str:
 # ---------------------------------------------------------------------------
 
 def test_gitignore_lines_include_shared_mount_and_pointer():
-    assert ".shared/" in init._GITIGNORE_LINES
+    assert ".shared" in init._GITIGNORE_LINES
     assert ".tapestry-shared.local" in init._GITIGNORE_LINES
 
 
 def test_skeleton_gitignore_ignores_shared(tmp_path):
     init._write_project_skeleton(tmp_path, "p", "P", "")
     gi = (tmp_path / ".gitignore").read_text(encoding="utf-8")
-    assert ".shared/" in gi
+    assert "\n.shared\n" in "\n" + gi + "\n"  # the symlink itself, not just .shared/
     assert ".tapestry-shared.local" in gi
 
 
@@ -122,10 +122,12 @@ def _load_check_module():
 
 def test_check_script_forbidden_logic():
     chk = _load_check_module()
-    assert chk._is_forbidden(".shared/notes.pdf") is True
+    assert chk._is_forbidden(".shared") is True            # the mount symlink itself
+    assert chk._is_forbidden(".shared/notes.pdf") is True  # contents under it
     assert chk._is_forbidden(".tapestry-shared.local") is True
     assert chk._is_forbidden("src/app.py") is False
     assert chk._is_forbidden("docs/README.md") is False
+    assert chk._is_forbidden("shared/app.py") is False      # unrelated 'shared' dir, not .shared
 
 
 if __name__ == "__main__":

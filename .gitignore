@@ -23,7 +23,8 @@ __pycache__/
 # Private shared material (ADR 0010) — local mount of the operator's external
 # synced dir ($TAPESTRY_SHARED_DIR/<slug>/) + its pointer file. Never committed;
 # enforced by .githooks/pre-commit and the private-files-check CI workflow.
-.shared/
+# No trailing slash: ignore the .shared symlink itself, not just a directory.
+.shared
 .tapestry-shared.local
 services/docs-mcp/docs_mcp/_corpus/
 services/docs-mcp/*.egg-info/
