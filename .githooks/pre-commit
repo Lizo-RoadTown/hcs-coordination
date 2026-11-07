@@ -1,0 +1,15 @@
+#!/bin/sh
+# Private-files guard (ADR 0010): block committing .shared/ and
+# .tapestry-shared.local. Local layer; CI (private-files-check.yml) is the
+# authoritative backstop. Activated by `git config core.hooksPath .githooks`.
+#
+# Best-effort: use the first python that actually RUNS — this skips the Windows
+# Store alias stub, which resolves on PATH but only prints an install message.
+# If none works, skip (exit 0); CI still enforces.
+for cand in python3 python py; do
+  if command -v "$cand" >/dev/null 2>&1 && "$cand" -c "import sys" >/dev/null 2>&1; then
+    exec "$cand" scripts/check_private_committed.py
+  fi
+done
+echo "pre-commit: no working python found; skipping private-files guard (CI still enforces)" >&2
+exit 0
