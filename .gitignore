@@ -19,6 +19,12 @@ __pycache__/
 # Tracked in git as of 2026-11-05 (operator decision) so snapshots, diffs,
 # and narratives sync across machines instead of staying local-per-machine.
 # This commits a record of each session's architecture state to history.
+
+# Private shared material (ADR 0010) — local mount of the operator's external
+# synced dir ($TAPESTRY_SHARED_DIR/<slug>/) + its pointer file. Never committed;
+# enforced by .githooks/pre-commit and the private-files-check CI workflow.
+.shared/
+.tapestry-shared.local
 services/docs-mcp/docs_mcp/_corpus/
 services/docs-mcp/*.egg-info/
 services/docs-mcp/build/

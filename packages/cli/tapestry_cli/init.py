@@ -38,6 +38,7 @@ import argparse
 import json
 import os
 import socket
+import subprocess
 import sys
 import time
 import urllib.error
@@ -471,6 +472,12 @@ _GITIGNORE_LINES = [
     "# hook every session. Local feedback, not repo history. .gitkeep preserves the dir.",
     "docs/architecture-snapshots/*",
     "!docs/architecture-snapshots/.gitkeep",
+    "",
+    "# Private shared material (ADR 0010) — local mount of your external synced dir",
+    "# ($TAPESTRY_SHARED_DIR/<slug>/) + its pointer file. Never committed; the",
+    "# pre-commit hook and private-files-check CI enforce it.",
+    ".shared/",
+    ".tapestry-shared.local",
 ]
 
 _DOCS_ARCHITECTURE_README = """# Architecture
@@ -609,6 +616,193 @@ def _write_project_skeleton(
     _write_if_absent(project_dir / "skills" / "README.md", _SKILLS_README)
 
 
+# ---------------------------------------------------------------------------
+# ADR 0010 — optional shared git-ignored directory + two-layer commit guard.
+# These files are SEEDED into every consuming project so the guard travels with
+# it; byte-identical copies live in the tapestry repo itself (scripts/,
+# .githooks/, .github/workflows/). Raw strings so the seeded `\n` etc. stay
+# literal.
+# ---------------------------------------------------------------------------
+
+_CHECK_SCRIPT = r'''#!/usr/bin/env python3
+"""Guard: fail if private shared material is tracked or staged in git.
+
+ADR 0010. The local mount `.shared/` links to the operator's external synced
+directory (`$TAPESTRY_SHARED_DIR/<slug>/`), and `.tapestry-shared.local` holds
+that absolute path. Both are git-ignored and must NEVER be committed.
+
+Used by both guard layers: the git pre-commit hook (staged files) and the CI
+workflow (tracked tree, the authoritative backstop). Stdlib-only.
+"""
+from __future__ import annotations
+
+import subprocess
+import sys
+
+FORBIDDEN_PREFIXES = (".shared/",)
+FORBIDDEN_NAMES = (".tapestry-shared.local",)
+
+
+def _git_lines(args: list[str]) -> list[str]:
+    try:
+        r = subprocess.run(["git", *args], capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if r.returncode != 0:
+        return []
+    return [ln for ln in r.stdout.splitlines() if ln.strip()]
+
+
+def _is_forbidden(path: str) -> bool:
+    return path in FORBIDDEN_NAMES or any(path.startswith(p) for p in FORBIDDEN_PREFIXES)
+
+
+def main() -> int:
+    staged = _git_lines(["diff", "--cached", "--name-only"])
+    tracked = _git_lines(["ls-files"])
+    bad = sorted({p for p in (*staged, *tracked) if _is_forbidden(p)})
+    if not bad:
+        return 0
+    print("ERROR: private shared material must never be committed (ADR 0010):", file=sys.stderr)
+    for p in bad:
+        print(f"  {p}", file=sys.stderr)
+    print(
+        "\n`.shared/` is the local mount of your external synced folder, and "
+        "`.tapestry-shared.local` points at it. Both are git-ignored on purpose. "
+        "Move the file out of `.shared/` before committing. (A forced `git add -f` "
+        "is the usual cause.)",
+        file=sys.stderr,
+    )
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+'''
+
+_PRECOMMIT_HOOK = r'''#!/bin/sh
+# Private-files guard (ADR 0010): block committing .shared/ and
+# .tapestry-shared.local. Local layer; CI (private-files-check.yml) is the
+# authoritative backstop. Activated by `git config core.hooksPath .githooks`.
+#
+# Best-effort: use the first python that actually RUNS — this skips the Windows
+# Store alias stub, which resolves on PATH but only prints an install message.
+# If none works, skip (exit 0); CI still enforces.
+for cand in python3 python py; do
+  if command -v "$cand" >/dev/null 2>&1 && "$cand" -c "import sys" >/dev/null 2>&1; then
+    exec "$cand" scripts/check_private_committed.py
+  fi
+done
+echo "pre-commit: no working python found; skipping private-files guard (CI still enforces)" >&2
+exit 0
+'''
+
+_PRIVATE_FILES_WORKFLOW = r'''name: private files check
+
+# ADR 0010 — authoritative guard that private shared material (.shared/,
+# .tapestry-shared.local) never lands in the repo. Runs server-side, so a local
+# `--no-verify` or a missing hook is still caught. To block merges, mark
+# "no private shared files committed" a required check on main.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: no private shared files committed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check for committed private shared material
+        run: python scripts/check_private_committed.py
+'''
+
+
+def _seed_guard(project_dir: Path) -> None:
+    """Seed the two-layer private-files guard (ADR 0010): the shared check
+    script, the git pre-commit hook, and the CI workflow. Idempotent. Activates
+    the hook via core.hooksPath (best-effort; a non-git dir just skips that)."""
+    _write_if_absent(project_dir / "scripts" / "check_private_committed.py", _CHECK_SCRIPT)
+    hook = project_dir / ".githooks" / "pre-commit"
+    was_absent = not hook.exists()
+    _write_if_absent(hook, _PRECOMMIT_HOOK)
+    if was_absent:
+        try:
+            os.chmod(hook, 0o755)
+        except OSError:
+            pass
+    _write_if_absent(
+        project_dir / ".github" / "workflows" / "private-files-check.yml",
+        _PRIVATE_FILES_WORKFLOW,
+    )
+    if (project_dir / ".git").exists():
+        try:
+            subprocess.run(
+                ["git", "-C", str(project_dir), "config", "core.hooksPath", ".githooks"],
+                capture_output=True, text=True, timeout=10, check=False,
+            )
+            print("  set core.hooksPath=.githooks (local pre-commit guard active)")
+        except (OSError, subprocess.SubprocessError):
+            pass
+
+
+def _setup_shared_space(project_dir: Path, slug: str) -> None:
+    """Optional (ADR 0010). If TAPESTRY_SHARED_DIR is set, create this project's
+    subfolder under it, write the git-ignored .tapestry-shared.local pointer, and
+    best-effort link it in at ./.shared. Unset => feature off. Never aborts init."""
+    shared_root = os.environ.get("TAPESTRY_SHARED_DIR", "").strip()
+    if not shared_root:
+        print("  shared space: not configured (optional). To enable cross-machine")
+        print("    private-file sharing, set TAPESTRY_SHARED_DIR to a synced folder")
+        print("    (OneDrive / Dropbox / Syncthing / …) and re-run. See ADR 0010.")
+        return
+
+    target = Path(shared_root).expanduser() / slug
+    try:
+        target.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        print(f"  WARN: could not create shared subfolder {target}: {e}")
+        return
+
+    pointer = project_dir / ".tapestry-shared.local"
+    if not pointer.exists():
+        pointer.write_text(str(target) + "\n", encoding="utf-8")
+        print(f"  wrote {pointer} -> {target}")
+
+    link = project_dir / ".shared"
+    if link.exists() or link.is_symlink():
+        print(f"  shared space ready: {target}  (mount: {link})")
+        return
+    linked = False
+    try:
+        os.symlink(target, link, target_is_directory=True)
+        linked = True
+    except (OSError, NotImplementedError):
+        if os.name == "nt":
+            try:
+                subprocess.run(
+                    ["cmd", "/c", "mklink", "/J", str(link), str(target)],
+                    capture_output=True, text=True, timeout=10, check=True,
+                )
+                linked = True
+            except (OSError, subprocess.SubprocessError):
+                linked = False
+    if linked:
+        print(f"  shared space ready: {target}  (mount: {link})")
+    else:
+        print(f"  shared space ready: {target}")
+        print("    (couldn't create a ./.shared link here — reference the path in")
+        print("     .tapestry-shared.local instead; the files still sync.)")
+
+
 def add_arguments(p: argparse.ArgumentParser) -> None:
     """Attach the init subcommand's args to a parser. Used by cli.py dispatch."""
     p.add_argument("--slug", required=True,
@@ -717,6 +911,12 @@ def run(args: argparse.Namespace) -> int:
 
     print(f"--> [6/6] Seed project skeleton (CLAUDE.md, .gitignore, docs/, skills/)...")
     _write_project_skeleton(project_dir, args.slug, name, args.description)
+
+    print(f"--> Seed the private-files guard (ADR 0010: pre-commit hook + CI)...")
+    _seed_guard(project_dir)
+
+    print(f"--> Set up the optional shared space (ADR 0010)...")
+    _setup_shared_space(project_dir, args.slug)
 
     print()
     print(f"==> Done.")
