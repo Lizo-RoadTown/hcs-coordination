@@ -91,7 +91,7 @@ else:
 
 BASE_REMINDER = (
     "Discipline check: PROBE files before asserting (cite file:line). "
-    "Distinguish dev-tooling (scripts/, docs/) from runtime (platform/, web/). "
+    "Distinguish dev-tooling (scripts/, docs/) from runtime (services/, apps/, packages/). "
     "Save corrections as feedback memory immediately. "
     "CORE DIRECTIVE 1 (docs/CORE_DIRECTIVES.md): if memory_recall / memory_write "
     "MCP tools are unavailable, HALT and report — do not work without loom-memory."
@@ -105,7 +105,7 @@ PROBE_REMINDER = (
 
 BUILD_REMINDER = (
     "Before building: classify the change. Dev-tooling (scripts/, docs/, session memory) "
-    "or runtime (platform/api/, web/)? Name which in your response. "
+    "or runtime (services/, apps/, packages/)? Name which in your response. "
     "Then PROBE the surrounding code BEFORE writing — cite file:line for any pattern you copy."
 )
 
@@ -196,31 +196,25 @@ def _write_memory_stub(cwd: str, prompt: str) -> Path | None:
 def _in_scope(cwd) -> bool:
     """True if tapestry-discipline hooks should run for this repo.
 
-    In scope if EITHER the working-directory path contains a known loom
-    substring (Make_Skills / the-loom / project-starter / _common), OR
-    LOOM_PROJECT_ID is set — the explicit per-project opt-in a consuming
-    project declares via its `.env` (loaded into os.environ by
-    _observability._load_dotenv at import time).
+    In scope if LOOM_PROJECT_ID is set (the explicit per-project opt-in a
+    consuming project declares via its `.env`, loaded into os.environ by
+    _observability._load_dotenv at import time), OR the working-directory
+    path matches a substring in the optional TAPESTRY_SCOPE_DIRS env
+    allowlist (comma-separated, case-insensitive). No project names are
+    hardcoded — the plugin ships universal; each operator configures their
+    own scope.
 
-    v0.1.12: added the LOOM_PROJECT_ID clause. Before this the gate was
-    substring-only, so a fully-wired consuming project (LOOM_PROJECT_ID
-    set, CLAUDE.md referencing the discipline) silently no-op'd every hook
-    — e.g. SDE_Extraction. Honoring LOOM_PROJECT_ID closes that class of
-    bug for every future consumer, not just one repo.
+    v0.1.24: converged with session_start's universal gate. The hardcoded
+    Make_Skills/the-loom/tapestry/project-starter/_common substrings are
+    gone; those repos opt in via the LOOM_PROJECT_ID already in their .env.
     """
-    cwd_s = str(cwd or "")
-    cwd_l = cwd_s.lower()
-    if (
-        "make_skills" in cwd_l
-        or "make-skills" in cwd_l
-        or "the-loom" in cwd_l
-        or "tapestry" in cwd_l
-        or "project-starter" in cwd_l
-        or "_common" in cwd_s
-    ):
-        return True
     if os.environ.get("LOOM_PROJECT_ID", "").strip():
         return True
+    cwd_l = str(cwd or "").lower()
+    allow = os.environ.get("TAPESTRY_SCOPE_DIRS", "")
+    for sub in (s.strip().lower() for s in allow.split(",") if s.strip()):
+        if sub and sub in cwd_l:
+            return True
     return False
 
 
@@ -249,6 +243,21 @@ def main() -> int:
         log_event(
             "UserPromptSubmit", "end", exit_code=0, elapsed_ms=now_ms() - start,
             scope_in=False, action="noop", note="out_of_scope",
+        )
+        return 0
+
+    # v0.1.24: never pattern-match non-user turns. Subagent hand-backs, task
+    # notifications, and system reminders arrive through this hook too, and
+    # their CONTENT can quote trigger phrases (a real incident: an audit
+    # report quoting this file's own "I already told you" regex fired the
+    # repetition detector and queued a bogus correction stub). Those frames
+    # are model/system output, not the user speaking.
+    head = prompt.lstrip()[:200]
+    if head.startswith(("<agent-message", "<task-notification", "<system-reminder",
+                        "[SYSTEM NOTIFICATION")) or "[Subagent hand-back]" in head:
+        log_event(
+            "UserPromptSubmit", "end", exit_code=0, elapsed_ms=now_ms() - start,
+            scope_in=True, action="noop", note="non_user_turn",
         )
         return 0
 

@@ -355,15 +355,23 @@ class TestRecurringUpskilling(unittest.TestCase):
         )
 
     def test_rewarn_after_new_work_since_report(self):
-        # A single git action since the report re-crosses the boundary.
-        metrics = {
+        # v0.1.24: a git action since the report re-crosses the boundary only
+        # when it comes with >= 2 new assistant turns — pushing the very
+        # commit the report described no longer re-arms the warning alone.
+        lone_push = {
             "assistant_turns": 36, "tool_calls": 41, "git_action_seen": True,
             "turns_at_last_report": 35, "tools_at_last_report": 40,
             "git_since_last_report": True,
         }
+        self.assertFalse(
+            stop_audit._is_substantive_boundary(
+                stop_audit._since_report_metrics(lone_push)
+            )
+        )
+        git_plus_new_work = dict(lone_push, assistant_turns=37)
         self.assertTrue(
             stop_audit._is_substantive_boundary(
-                stop_audit._since_report_metrics(metrics)
+                stop_audit._since_report_metrics(git_plus_new_work)
             )
         )
 
