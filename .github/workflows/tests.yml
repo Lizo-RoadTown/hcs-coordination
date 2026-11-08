@@ -30,6 +30,10 @@ jobs:
           - { name: skill-making,          workdir: services/skill-making, pythonpath: python, testpath: python/skill_making/tests }
           - { name: telemetry-ingestion,   workdir: services/telemetry-ingestion }
           - { name: agent-context,         workdir: services/agent-context, optional: true }
+          # 2026-11-08 check-layers audit: these two suites existed but ran
+          # nowhere in CI (the cli even published to PyPI untested).
+          - { name: cli,                   workdir: packages/cli, testpath: tests }
+          - { name: discipline-plugin,     workdir: integrations/claude-code/tapestry-discipline, testpath: tests }
     steps:
       - uses: actions/checkout@v4
 
@@ -41,7 +45,11 @@ jobs:
         working-directory: ${{ matrix.workdir }}
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          elif [ -f pyproject.toml ]; then
+            pip install -e .
+          fi
           if [ -f requirements-test.txt ]; then
             pip install -r requirements-test.txt
           else
