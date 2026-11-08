@@ -13,7 +13,9 @@ permissions:
   contents: read
 
 jobs:
-  check:
+  # Distinct job name (was 'check' in both this and the sibling workflow),
+  # so a branch-protection required-checks list can tell them apart.
+  plugin-version-alignment:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

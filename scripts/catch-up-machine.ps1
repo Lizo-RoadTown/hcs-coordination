@@ -27,6 +27,15 @@ if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
+Write-Host '==> [0/4] Activating this clone''s git hooks (ADR 0010 guard)...'
+if (Test-Path '.githooks') {
+    git config core.hooksPath .githooks
+    Write-Host '    core.hooksPath = .githooks'
+} else {
+    Write-Host '    no .githooks directory here - skipped'
+}
+
+Write-Host ''
 Write-Host '==> [1/4] Refreshing all marketplace catalogs from source...'
 claude plugin marketplace update
 

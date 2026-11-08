@@ -1,0 +1,27 @@
+name: docs frontmatter check
+
+# Validates the YAML frontmatter of every docs-site content page.
+# Exists because one unquoted ": " in a page description silently broke
+# every Vercel deployment for six PRs (fixed 2026-11-08). This catches
+# that class before the deploy instead of inside Vercel's build log.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  frontmatter:
+    name: docs frontmatter valid
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate frontmatter
+        run: |
+          pip install pyyaml
+          python scripts/check_docs_frontmatter.py
