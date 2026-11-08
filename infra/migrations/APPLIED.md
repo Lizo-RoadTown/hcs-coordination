@@ -20,9 +20,9 @@ source-of-truth per [ADR-0003](../../docs/adr/0003-shared-postgres-schema-source
 | 001_init_memory.sql | tapestry staging Postgres | yes (staging parity 2026-06-20) | render.yaml staging block |
 | 002_init_projects.sql | live loom-postgres | yes (project-registry live) | runbook 03 |
 | 004_init_policy.sql | live loom-postgres | yes (equivalent applied via the-loom's 004; tapestry file is a forklift copy) | the-loom series; policy_decisions live |
-| 005_init_telemetry.sql | live loom-postgres | **NOT APPLIED** | gate for runbook 05 step A2 |
+| 005_init_telemetry.sql | live loom-postgres | yes (2026-11-08, apply_migration.py, RESULT: OK; telemetry_events + telemetry_rollup_daily verified present, 4 RLS policies) | runbook 05 step A2 |
 | 005_init_telemetry.sql | tapestry staging Postgres | yes (observer-capacity staging, 2026-08-23) | render.yaml:101-137 staging observatory reads it |
-| 006_init_observation_signals.sql | live loom-postgres | **NOT APPLIED** | gate for runbook 05 step A2 |
+| 006_init_observation_signals.sql | live loom-postgres | yes (2026-11-08, apply_migration.py, RESULT: OK; observation_signals verified present, 4 RLS policies) | runbook 05 step A2 |
 | 006_init_observation_signals.sql | tapestry staging Postgres | yes (2026-08-23) | staging observation_signals |
 | 007_init_candidates.sql | live loom-postgres | **NOT APPLIED** (live candidates table predates it via the-loom series; 007 is the consolidated forklift, gated by the architecture-registry repoint checks 1/1b/1c) | render.yaml:200-206 |
 

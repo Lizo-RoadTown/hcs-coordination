@@ -31,4 +31,10 @@ These are logged as PENDING; fill in a DL entry when each is decided.
 
 ## Log
 
-_(no decisions recorded yet — this is the skeleton; first real entry lands when GATE 0 is run or D-B1 is decided on the other machine.)_
+### DL-001 — GATE 0 result: Render loom-postgres has NO pg_cron / pg_net   (2026-11-08, MINIPC-T9CJY, agent-run with operator-provided external URL)
+- **Context:** Plan §5 GATE 0 — WS-B/WS-C ("self-observer into the DB") presume pg_cron+pg_net. First live check against loom-postgres (PostgreSQL 16.13).
+- **Options considered:** n/a — a measurement, not a choice.
+- **Decision:** `pg_available_extensions` lists NEITHER pg_cron NOR pg_net (nor pgmq); only `vector 0.8.0` (installed). The in-database recursion premise FAILS on Render's managed Postgres.
+- **Consequences:** WS-C is impossible on the current host; WS-B (store move to Supabase) is the enabling step, exactly as the plan gated it. D-B1 (~$25/mo Supabase Pro) is now the live blocking decision for WS-B/WS-C. WS-A (bi-temporal, additive) remains host-independent and can proceed anytime. ADR: feeds 0007/0008 when written.
+- **Status:** accepted (measured).
+
