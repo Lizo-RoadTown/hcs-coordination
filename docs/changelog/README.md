@@ -66,6 +66,7 @@ Newest first. (Older history predating the trail lives in `import-map.md` and gi
 |---|---|---|---|
 | 2026-11-08 | fix | [discipline 0.1.24 — agent-hook layer fixes from the check-layers audit](2026-11-08-discipline-0-1-24-layer-fixes.md) | this PR |
 | 2026-11-08 | decision | [Copilot code review replaces the Claude CI review workflow](2026-11-08-copilot-review-replaces-claude-ci-review.md) | #192 |
+| 2026-11-08 | decision | [Copilot code review replaces the Claude CI review workflow](2026-11-08-copilot-review-replaces-claude-ci-review.md) | this PR |
 | 2026-11-07 | feature | [project-launch skill + not-onboarded session-start check (patterns 0.1.9, discipline 0.1.23)](2026-11-07-project-launch-skill-and-onboarding-check.md) | #190 |
 | 2026-11-02 | feature | [device-coordination skill + drift-watcher memory-binding fix (patterns 0.1.8)](2026-11-02-device-coordination-skill-and-drift-watcher-fix.md) | #185 |
 | 2026-10-21 | feature | [Telemetry reads authenticated; deploy block, runbook, migrations ledger (A1)](2026-10-21-telemetry-read-auth.md) | #184 |
