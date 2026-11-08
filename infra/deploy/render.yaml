@@ -210,27 +210,27 @@ services:
   # ROLLBACK = re-point the Render service's repo back to the-loom (code
   # byte-identical; the shared DB is untouched by a repoint).
   # --------------------------------------------------------------------------
-  # - type: web
-  #   name: loom-architecture-registry   # SAME name → same URL → consumers unchanged
-  #   runtime: python
-  #   plan: starter                      # keep warm — load-bearing for both observers + dashboard
-  #   region: oregon
-  #   branch: main
-  #   rootDir: services/architecture-registry
-  #   buildCommand: pip install -r requirements.txt
-  #   startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-  #   autoDeploy: false                  # operator performs the repoint per the runbook
-  #   healthCheckPath: /health
-  #   envVars:
-  #     - fromGroup: tapestry-shared-secrets   # LOOM_JWT_PUBLIC_KEY (hosted-multitenant verify)
-  #     - key: PYTHON_VERSION
-  #       value: "3.12"
-  #     - key: LOOM_DB_URL
-  #       sync: false                    # raw connection string to the LIVE loom-postgres
-  #     - key: LOOM_SKILL_BRIDGE_SECRET
-  #       sync: false                    # HMAC shared secret — SAME value as the Make_Skills engine
-  #     - key: SELF_HOST_TENANT_ID
-  #       value: 1d8ec1b3-d62a-5fab-9a52-eb6a3e09f1c8   # tenant the LIVE candidate rows carry; unset => nil UUID => self-host reads see ZERO historical candidates
+  - type: web
+    name: loom-architecture-registry   # SAME name → same URL → consumers unchanged
+    runtime: python
+    plan: starter                      # keep warm — load-bearing for both observers + dashboard
+    region: oregon
+    branch: main
+    rootDir: services/architecture-registry
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: false                  # operator performs the repoint per the runbook
+    healthCheckPath: /health
+    envVars:
+      - fromGroup: tapestry-shared-secrets   # LOOM_JWT_PUBLIC_KEY (hosted-multitenant verify)
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: LOOM_DB_URL
+        sync: false                    # raw connection string to the LIVE loom-postgres
+      - key: LOOM_SKILL_BRIDGE_SECRET
+        sync: false                    # HMAC shared secret — SAME value as the Make_Skills engine
+      - key: SELF_HOST_TENANT_ID
+        value: 1d8ec1b3-d62a-5fab-9a52-eb6a3e09f1c8   # tenant the LIVE candidate rows carry; unset => nil UUID => self-host reads see ZERO historical candidates
   #     # Bridge callback/engine URLs have in-code defaults (promote_dispatcher.py);
   #     # override only if the engine or callback hosts move:
   #     # - key: LOOM_ENGINE_BASE_URL
@@ -321,8 +321,15 @@ services:
   #       sync: false                 # raw connection string to the LIVE loom-postgres
 
   # --------------------------------------------------------------------------
-  # PRODUCTION re-point of loom-telemetry-ingestion — DISABLED (repoint gate).
+  # PRODUCTION re-point of loom-telemetry-ingestion — EXECUTED 2026-11-08.
   # ============================================================================
+  # Gate satisfied + repoint performed via Render API (runbook 05, A2-A5):
+  # migrations 005/006 applied (APPLIED.md), env provisioned (incl. minted
+  # LOOM_HOOK_BRIDGE_SECRET + TAPESTRY_TELEMETRY_READ_KEY; LOOM_JWT_PUBLIC_KEY
+  # set directly on the service), the-loom PR #33 merged (one-blueprint),
+  # operator-authorized. Smoke: /health 200, unauth read 401, authed read 200,
+  # 158 backfilled events accepted and queryable. This block is now the LIVE
+  # definition of the service.
   # A1 of docs/plans/2026-10-21-master-plan-personal-loop.md. REPOINT of the
   # EXISTING `loom-telemetry-ingestion` Render service at the Tapestry repo
   # (rootDir services/telemetry-ingestion), NOT a new/duplicate service. Same
