@@ -8,10 +8,11 @@ the CLI under `packages/cli/`, operating docs under `docs/`.
 
 Reviews here are advisory: comment, never approve or request changes on the author's behalf.
 
-**Defer to deterministic CI.** Required checks already cover tests (`tests.yml`), plugin
-version alignment (`plugin-version-check.yml`), the change-trail guard, and the private-files
-check. Do not restate what a linter, type-checker, or test run would catch — if a
-deterministic tool would flag it, stay silent and let that check speak.
+**Defer to deterministic CI where it exists.** Separate workflows cover tests (`tests.yml`),
+plugin version alignment (`plugin-version-check.yml`), the change-trail guard, and the
+private-files check — do not restate what those would catch. As of 2026-11-08 no linter or
+type-checker runs in CI (see `docs/audits/2026-11-08-check-layers-audit.md`), so a clear
+lint-class or type-class bug in the diff IS worth one comment until that gap closes.
 
 Review only the diff. Focus on what deterministic CI cannot see:
 
