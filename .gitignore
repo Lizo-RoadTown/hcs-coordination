@@ -40,3 +40,14 @@ docs/assets/*.zip
 
 # npm at repo root (supabase CLI devDependency) — never commit the tree
 node_modules/
+
+# Operator-private material lives in the ADR-0010 shared space (.shared/), never in this PUBLIC repo
+docs/canon/
+docs/temp/
+.agents/
+.codex/
+.commandcode/
+.claude/skills/
+skills-lock.json
+# stray generated snapshots (junk; safe to delete)
+services/self-observer/docs/architecture-snapshots/
