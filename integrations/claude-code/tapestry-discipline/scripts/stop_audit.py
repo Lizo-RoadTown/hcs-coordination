@@ -142,6 +142,17 @@ UPSKILLING_REPORT_NAME_REGEX = re.compile(
     r"^upskilling_report_session_\d{4}_\d{2}_\d{2}$"
 )
 
+# v0.1.25: phrases that hand a decision upward to the operator. Deliberately
+# narrow — matches explicit hand-ups, not any mention of the operator.
+ROUTING_UPWARD_REGEX = re.compile(
+    r"(for (?:Liz|the operator) to (?:decide|choose|answer)"
+    r"|only (?:you|Liz|the operator) can (?:decide|make|answer)"
+    r"|decisions? only (?:you|Liz|the operator)"
+    r"|awaiting (?:your|her|Liz's) (?:decision|choice|call)"
+    r"|that's (?:Liz's|the operator's|your) (?:decision|call) to make)",
+    re.IGNORECASE,
+)
+
 UPSKILLING_WARNING = (
     "*** UPSKILLING PASS NOT RUN ***\n"
     "This session has crossed a substantive boundary (multiple tool calls + "
@@ -519,10 +530,31 @@ def main() -> int:
         and not _already_warned_window
     )
 
-    # Compose findings into one additionalContext if either fires.
+    # Check 3 (v0.1.25): decision-routing audit. Liz (2026-11-07, loom-memory
+    # feedback-module-design-questions-are-the-modules-to-research-2026-11-07):
+    # "All of the things you are asking are things for quickprime to research."
+    # Before handing a question upward, the owning module researches it.
+    # Promotion candidate relayed by lens-core, endorsed by the operator.
+    routing_hits = ROUTING_UPWARD_REGEX.findall(metrics["last_assistant_text"] or "")
+
+    # Compose findings into one additionalContext if any check fires.
     context_blocks: list[str] = []
     notes: list[str] = []
     action = "noop"
+
+    if routing_hits:
+        context_blocks.append(
+            "[loom-discipline] DECISION-ROUTING CHECK. This response hands "
+            "item(s) upward to the operator. Before listing anything as hers to "
+            "decide, ask: could the OWNING MODULE settle it by research? If yes, "
+            "assign it there and record the conclusion in that module's decision "
+            "log. Bring the operator only: direction and purpose; naming; "
+            "approvals at operator gates; proprietary or privacy policy; and "
+            "questions a module's research has shown it cannot settle. "
+            "(feedback-module-design-questions-are-the-modules-to-research-2026-11-07)"
+        )
+        notes.append(f"routing_upward_hits={len(routing_hits)}")
+        action = "routing_reminder"
 
     if claim_violation:
         context_blocks.append(

@@ -64,6 +64,7 @@ Newest first. (Older history predating the trail lives in `import-map.md` and gi
 
 | Date | Kind | Change | PRs |
 |---|---|---|---|
+| 2026-11-08 | feature | [discipline 0.1.25 — decision-routing check + session-report union-merge](2026-11-08-discipline-0-1-25-decision-routing.md) | this PR |
 | 2026-11-08 | migration | [Telemetry cutover executed — receiver persists, reads authenticated](2026-11-08-telemetry-cutover-executed.md) | this PR |
 | 2026-11-08 | fix | [auth: anonymous requests no longer inherit the self-host tenant on hosted deployments](2026-11-08-auth-no-anon-fallback-on-hosted.md) | #196 |
 | 2026-11-08 | chore | [CI hardening: cli + plugin test legs, tests-before-publish, frontmatter guard](2026-11-08-ci-hardening-tests-frontmatter.md) | #194 |
