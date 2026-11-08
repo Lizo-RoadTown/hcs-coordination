@@ -19,11 +19,23 @@ Recorded in loom-memory `feedback-equip-new-projects-fully-not-just-docs-2026-11
 
 ## The sequence
 
-1. **PROBE** — does the directory already exist? Is it already a git repo? Does
-   `.project-intelligence/` already exist (then this is a re-equip or second-machine mint,
-   not a launch)? Is the `tapestry` CLI on PATH (`tapestry -h`)? If the CLI is missing:
-   `pip install tapestry-cli`, and if PyPI is behind what main needs, install from the
-   tapestry repo checkout (`pip install -e packages/cli`).
+1. **PROBE — check for things FIRST, before creating anything:**
+   - **Slug collision:** does the slug already exist in the project registry (query it) or
+     as a directory on either machine or as a GitHub repo (`gh repo view <owner>/<slug>`)?
+   - **Prior history:** does loom-memory hold records for this project name or an adjacent
+     one (`memory_search` the name)? A prior launch, rename, or retirement changes the plan.
+   - **Local state:** does the directory already exist? Already a git repo? Does
+     `.project-intelligence/` already exist (then this is a re-equip or second-machine mint,
+     not a launch — do NOT create a duplicate registry row)?
+   - **Audience:** is it public-destined? Then the boundary rule applies (see below).
+   - **Machine:** which machine hosts it, and does the other machine need anything
+     (clone, junctions, local mint) per the `device-coordination` skill?
+   - **Tooling:** is the `tapestry` CLI on PATH (`tapestry -h`)? If missing:
+     `pip install tapestry-cli`, and if PyPI is behind what main needs, install from the
+     tapestry repo checkout (`pip install -e packages/cli`).
+
+   The tapestry-discipline PreToolUse hook reminds you of this PROBE whenever a
+   creation command (`git init`, `gh repo create`, `tapestry init`) is about to run.
 
 2. **MINT THE SKELETON — before any custom content:**
    - New directory: `tapestry init --slug <slug> ...`

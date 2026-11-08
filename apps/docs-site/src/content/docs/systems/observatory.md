@@ -1,6 +1,6 @@
 ---
 title: Observatory
-description: The component view of the Observatory — how it's wired (today: the coordination-episode feed; designed: Memory + the registries), how to self-host it, verify it, and troubleshoot it. For what it is and how to read it, see the Learn page.
+description: "The component view of the Observatory — how it's wired (today: the coordination-episode feed; designed: Memory + the registries), how to self-host it, verify it, and troubleshoot it. For what it is and how to read it, see the Learn page."
 ---
 
 The Observatory is the operator-facing web surface where the platform's interpretations get explored. This page covers how it's wired and how to run it. For what it is and how to read it, see [The Observatory](/observatory/about/).

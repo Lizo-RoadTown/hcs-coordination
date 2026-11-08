@@ -27,6 +27,18 @@ instead of remembered.
   "project not onboarded" context block — including for repos OUTSIDE the normal scope guard,
   since a project created without the CLI has no `LOOM_PROJECT_ID` and is exactly the repo the
   scope guard never reaches. Silent once minted. Functionally verified both ways.
+- **tapestry-discipline PreToolUse creation check (0.1.23)** — `_creation_reminder()` in
+  `scripts/pre_tool_use.py` (check 3) + `Bash` added to the PreToolUse matcher in
+  `hooks/hooks.json`: when a Bash command is about to run `git init`, `gh repo create`, or
+  `tapestry init`, the hook injects the project-launch PROBE checklist (slug/registry
+  collision, existing dir or GitHub repo, prior loom-memory records, public-destined boundary
+  rule, which machine). Runs BEFORE the scope guard — warn-only, never blocks. The skill's
+  step 1 carries the matching expanded PROBE.
+- **Vercel fix (unblocks the repo's deploy check):** `apps/docs-site/src/content/docs/systems/observatory.md:3`
+  had an unquoted frontmatter `description` containing `: ` ("(today: …; designed: …)") —
+  js-yaml "bad indentation of a mapping entry", failing every deployment since the page landed.
+  Quoted; `npm run build` verified green locally; swept all docs frontmatter — no other
+  unquoted colon-space hazards.
 
 **Why:** QuickPrime (2026-11-07) was launched with docs *describing* the setup but no actual
 equipment; the operator had to notice and ask ("you didn't give quickprime any project

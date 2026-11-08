@@ -12,6 +12,12 @@ Fires before Edit / Write / MultiEdit. Checks two conditions:
    shared-interface boundary (e.g., the dual-mode discipline), inject a
    reminder to classify in the response.
 
+3. **Project-creation PROBE (v0.1.23).** Fires on Bash commands that create
+   a project (`git init`, `gh repo create`, `tapestry init`) — including
+   OUTSIDE the scope guard, since a brand-new project has no LOOM_PROJECT_ID
+   yet. Injects the tapestry-patterns:project-launch PROBE checklist as a
+   reminder (warn-only, never blocks).
+
 Does NOT block by default — emits additionalContext as a soft reminder.
 Set DISCIPLINE_STRICT=1 in the environment to make these checks blocking.
 
@@ -246,6 +252,31 @@ def _in_scope(cwd) -> bool:
     return False
 
 
+CREATION_CMD_RE = re.compile(r"\b(git\s+init|gh\s+repo\s+create|tapestry\s+init)\b")
+
+
+def _creation_reminder(tool_name: str, tool_input: dict):
+    """v0.1.23: check 3 — project-creation PROBE reminder. Returns the
+    reminder text when a Bash command is about to create a project, else
+    None. Warn-only by design: creation commands are sometimes legitimate
+    mid-task (e.g. a throwaway test fixture), so this never blocks."""
+    if tool_name != "Bash":
+        return None
+    command = str((tool_input or {}).get("command") or "")
+    m = CREATION_CMD_RE.search(command)
+    if not m:
+        return None
+    return (
+        f"`{m.group(1)}` is a project-creation command. Before creating anything, "
+        "run the tapestry-patterns:project-launch skill's PROBE: (1) does the slug "
+        "already exist in the project registry? (2) does the directory or GitHub repo "
+        "already exist? (3) does loom-memory hold prior records for this project name? "
+        "(4) is it public-destined (boundary rule: fleet wiring stays in local untracked "
+        "files)? (5) which machine hosts it? Then mint the skeleton with the tapestry CLI "
+        "and customize on top. If the PROBE already happened this session, proceed."
+    )
+
+
 def main() -> int:
     start = now_ms()
     log_event("PreToolUse", "start")
@@ -268,6 +299,15 @@ def main() -> int:
     cwd = data.get("cwd") or ""
 
     os.environ["LOOM_HOOK_TOOL_NAME"] = tool_name
+
+    # Check 3 (v0.1.23): project-creation PROBE reminder. Runs BEFORE the
+    # scope guard on purpose — a brand-new project has no LOOM_PROJECT_ID,
+    # so creation commands are exactly the case the scope guard never sees.
+    creation_text = _creation_reminder(tool_name, tool_input)
+    if creation_text:
+        emit_reminder(creation_text)
+        log_event("PreToolUse", "end", exit_code=0, elapsed_ms=now_ms() - start, action="creation_reminder", note="project_creation_command")
+        return 0
 
     # Only police loom-scoped repos. v0.1.12: scope also honors
     # LOOM_PROJECT_ID (per-project opt-in), not just cwd substrings.
