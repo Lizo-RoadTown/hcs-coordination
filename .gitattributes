@@ -1,0 +1,3 @@
+# Session reports grow append-only in parallel on branches/machines — union-merge
+# them instead of conflicting (4 manual resolutions on 2026-11-08 alone).
+docs/session-reports/*.md merge=union
