@@ -436,6 +436,38 @@ def _resolve_patterns_scripts_dir(cwd: Path) -> Path | None:
     return None
 
 
+def _onboarding_warning(cwd: Path) -> list:
+    """v0.1.23: not-onboarded backstop. Returns warning lines when cwd looks
+    like one of the operator's fleet projects (a git repo whose
+    .claude/settings.json enables a tapestry plugin) but has no
+    .project-intelligence/ — i.e. the skeleton was never minted here, or this
+    is a fresh clone on a second machine. Fires even OUT of scope, because a
+    project created without the CLI has no LOOM_PROJECT_ID and would otherwise
+    be exactly the repo this check never reaches. Never raises.
+    """
+    try:
+        if not (cwd / ".git").exists():
+            return []
+        if (cwd / ".project-intelligence").is_dir():
+            return []
+        settings = cwd / ".claude" / "settings.json"
+        if not settings.is_file():
+            return []
+        text = settings.read_text(encoding="utf-8", errors="replace")
+        if "tapestry-discipline" not in text and "tapestry-patterns" not in text:
+            return []
+        return [
+            "[loom-discipline · project not onboarded]",
+            "This repo enables the tapestry plugins but has no .project-intelligence/.",
+            "Either it was never minted (run the tapestry-patterns:project-launch skill — "
+            "`tapestry onboard` with the registry URL), or this is a fresh clone on a "
+            "second machine (mint locally; check the slug against the registry first so "
+            "no duplicate row is created). Do not proceed as if the project is equipped.",
+        ]
+    except OSError:
+        return []
+
+
 def main() -> int:
     start = now_ms()
     log_event("SessionStart", "start")
@@ -462,7 +494,17 @@ def main() -> int:
         or ((cwd / "ARCHITECTURE.md").exists()
             and (cwd / "scripts" / "architecture_snapshot.py").exists())
     )
+    onboarding_lines = _onboarding_warning(cwd)
     if not in_scope:
+        if onboarding_lines:
+            print(json.dumps({
+                "hookSpecificOutput": {
+                    "hookEventName": "SessionStart",
+                    "additionalContext": "\n".join(onboarding_lines),
+                }
+            }))
+            log_event("SessionStart", "end", exit_code=0, elapsed_ms=now_ms() - start, scope_in=False, action="onboarding_warning", note="not_onboarded")
+            return 0
         log_event("SessionStart", "end", exit_code=0, elapsed_ms=now_ms() - start, scope_in=False, action="noop", note="out_of_scope")
         return 0
 
@@ -585,6 +627,10 @@ def main() -> int:
             "Set TAPESTRY_MEMORY_MCP_URL to your own memory MCP endpoint to enable "
             "cross-session recall. The discipline hooks work without it."
         )
+
+    if onboarding_lines:
+        msg_lines.append("")
+        msg_lines.extend(onboarding_lines)
 
     payload = {
         "hookSpecificOutput": {
