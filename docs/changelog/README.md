@@ -64,6 +64,7 @@ Newest first. (Older history predating the trail lives in `import-map.md` and gi
 
 | Date | Kind | Change | PRs |
 |---|---|---|---|
+| 2026-11-08 | fix | [auth: anonymous requests no longer inherit the self-host tenant on hosted deployments](2026-11-08-auth-no-anon-fallback-on-hosted.md) | this PR |
 | 2026-11-08 | chore | [CI hardening: cli + plugin test legs, tests-before-publish, frontmatter guard](2026-11-08-ci-hardening-tests-frontmatter.md) | #194 |
 | 2026-11-08 | fix | [discipline 0.1.24 — agent-hook layer fixes from the check-layers audit](2026-11-08-discipline-0-1-24-layer-fixes.md) | #193 |
 | 2026-11-08 | decision | [Copilot code review replaces the Claude CI review workflow](2026-11-08-copilot-review-replaces-claude-ci-review.md) | #192 |

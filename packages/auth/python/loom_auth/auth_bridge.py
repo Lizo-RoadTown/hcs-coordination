@@ -268,9 +268,21 @@ async def verify_bearer(authorization: Optional[str] = Header(None)) -> str:
        RS256 signature, extracts `tenant_id` claim, returns it.
 
     3. **Bearer header present but unverifiable**: 401.
+
+    4. **No auth header but public key configured**: 401. A configured
+       `LOOM_JWT_PUBLIC_KEY` means this is a hosted deployment; an
+       anonymous request must not inherit the self-host tenant, or the
+       public URL serves (and accepts writes to) tenant data with no
+       auth at all. Found live on loom-architecture-registry 2026-11-07;
+       loom-project-registry deploys from THIS repo, so the same fix
+       lands here (mirrors the-loom PR #34).
     """
-    # Mode 1 — no auth header at all → self-host
+    # Mode 1 — no auth header AND no public key → self-host. The key
+    # check is load-bearing: without it, mode 1 applies on hosted
+    # deployments too, and anonymous callers get SELF_HOST_TENANT_ID.
     if not authorization:
+        if _load_public_key():
+            raise HTTPException(401, "Authorization required")
         tenant_ctx_var.set(SELF_HOST_TENANT_ID)
         return SELF_HOST_TENANT_ID
 
