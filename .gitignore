@@ -37,3 +37,6 @@ services/docs-mcp/dist/
 
 # Redundant brand-sheet archive (extracted contents are committed)
 docs/assets/*.zip
+
+# npm at repo root (supabase CLI devDependency) — never commit the tree
+node_modules/
