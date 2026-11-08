@@ -1,0 +1,59 @@
+{
+  "current_timestamp": "2026-07-20T06:28:51.287234+00:00",
+  "prev_timestamp": "2026-07-16T18:17:20.326747+00:00",
+  "current_sha": "4ace69d4420bea3daef3dcd223a46bd66c25e835",
+  "prev_sha": "8c34cefe309e9ceee36eeb32c3268471f607ce23",
+  "current_shape": "mixed",
+  "changes": {
+    "shape": [],
+    "render": [],
+    "node": [],
+    "python": [
+      "NEW manifest: `engine/agency-to-structure/python/pyproject.toml` (2 packages)",
+      "NEW manifest: `packages/sdk/python/pyproject.toml` (1 packages)"
+    ],
+    "mcp": [],
+    "auth": [],
+    "inventory": []
+  },
+  "commits": [
+    {
+      "sha": "6b4e9fdd",
+      "subject": "Merge pull request #25 from Lizo-RoadTown/migration/tier2-core-runtime",
+      "files": []
+    },
+    {
+      "sha": "883b4639",
+      "subject": "Merge pull request #16 from Lizo-RoadTown/migration/tier1-multi-tenant-primitives",
+      "files": []
+    },
+    {
+      "sha": "05a1ea88",
+      "subject": "migration(tier-2): lift Make_Skills core-runtime modules to engine/agency-to-structure + loom_sdk (audit \u00c2\u00a72.2)",
+      "files": [
+        "engine/agency-to-structure/python/agency_to_structure/__init__.py",
+        "engine/agency-to-structure/python/agency_to_structure/agent.py",
+        "engine/agency-to-structure/python/agency_to_structure/runtime.py",
+        "engine/agency-to-structure/python/agency_to_structure/subagents.py",
+        "engine/agency-to-structure/python/pyproject.toml",
+        "packages/sdk/python/loom_sdk/providers/__init__.py",
+        "packages/sdk/python/loom_sdk/providers/model_registry.py",
+        "packages/sdk/python/loom_sdk/tools/__init__.py",
+        "packages/sdk/python/loom_sdk/tools/db.py"
+      ]
+    },
+    {
+      "sha": "19a713ac",
+      "subject": "migration(tier-1): lift Make_Skills multi-tenant primitives + bootstrap packages/sdk/ (audit \u00c2\u00a71.2)",
+      "files": [
+        "packages/auth/python/loom_auth/__init__.py",
+        "packages/auth/python/loom_auth/tenant_context.py",
+        "packages/sdk/README.md",
+        "packages/sdk/python/loom_sdk/__init__.py",
+        "packages/sdk/python/loom_sdk/db.py",
+        "packages/sdk/python/loom_sdk/secrets.py",
+        "packages/sdk/python/pyproject.toml"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "current_timestamp": "2026-09-06T03:42:47.025989+00:00",
+  "prev_timestamp": "2026-08-30T03:24:00.236056+00:00",
+  "current_sha": "3bdf3c8c097a012c8b0130d342b3f65340981267",
+  "prev_sha": "33b67a0a191c9fbf50ab796fe48e304f08714ef8",
+  "current_shape": "mixed",
+  "changes": {
+    "shape": [],
+    "render": [],
+    "node": [
+      "NEW package.json: `.claude/worktrees/agent-a76d0551e78a5c669/apps/docs-site/package.json`",
+      "NEW package.json: `.claude/worktrees/agent-a76d0551e78a5c669/apps/web-dashboard/package.json`",
+      "NEW package.json: `.claude/worktrees/agent-a76d0551e78a5c669/integrations/vscode/package.json`"
+    ],
+    "python": [
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/engine/agency-to-structure/python/pyproject.toml` (2 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/packages/auth/pyproject.toml` (1 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/packages/cli/pyproject.toml` (0 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/packages/sdk/python/pyproject.toml` (1 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/agent-context/requirements-test.txt` (4 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/agent-context/requirements.txt` (8 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/architecture-registry/requirements-test.txt` (2 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/architecture-registry/requirements.txt` (6 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/docs-mcp/pyproject.toml` (1 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/project-observatory/requirements-test.txt` (2 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/project-observatory/requirements.txt` (4 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/project-registry/requirements.txt` (5 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/self-observer/requirements-test.txt` (2 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/self-observer/requirements.txt` (3 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/skill-making/requirements.txt` (7 packages)",
+      "NEW manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/telemetry-ingestion/requirements.txt` (5 packages)",
+      "NEW manifest: `services/architecture-registry/requirements-test.txt` (2 packages)",
+      "NEW manifest: `services/architecture-registry/requirements.txt` (6 packages)",
+      "NEW manifest: `services/policy/requirements-test.txt` (2 packages)",
+      "NEW manifest: `services/policy/requirements.txt` (5 packages)",
+      "NEW manifest: `services/self-observer/requirements-test.txt` (2 packages)",
+      "NEW manifest: `services/self-observer/requirements.txt` (3 packages)"
+    ],
+    "mcp": [],
+    "auth": [],
+    "inventory": []
+  },
+  "commits": [
+    {
+      "sha": "e9a3bb39",
+      "subject": "feat(policy): migrate policy service from the-loom (Refactor, code-only) (#166)",
+      "files": [
+        "docs/migration/import-map.md",
+        "infra/deploy/render.yaml",
+        "infra/migrations/004_init_policy.sql",
+        "services/policy/README.md",
+        "services/policy/auth_bridge.py",
+        "services/policy/main.py",
+        "services/policy/models.py",
+        "services/policy/pytest.ini",
+        "services/policy/requirements-test.txt",
+        "services/policy/requirements.txt",
+        "services/policy/storage.py",
+        "services/policy/tests/__init__.py",
+        "services/policy/tests/test_policy_invariants.py"
+      ]
+    },
+    {
+      "sha": "fb86cee1",
+      "subject": "feat(architecture-registry): migrate candidate registry from the-loom (Lift/Refactor)",
+      "files": [
+        "infra/deploy/render.yaml",
+        "infra/migrations/007_init_candidates.sql",
+        "services/architecture-registry/README.md",
+        "services/architecture-registry/auth_bridge.py",
+        "services/architecture-registry/bridge_hmac.py",
+        "services/architecture-registry/bridge_models.py",
+        "services/architecture-registry/main.py",
+        "services/architecture-registry/models.py",
+        "services/architecture-registry/promote_dispatcher.py",
+        "services/architecture-registry/pytest.ini",
+        "services/architecture-registry/registration_handler.py",
+        "services/architecture-registry/requirements-test.txt",
+        "services/architecture-registry/requirements.txt",
+        "services/architecture-registry/storage.py",
+        "services/architecture-registry/tests/__init__.py",
+        "services/architecture-registry/tests/test_bridge_contract.py",
+        "services/architecture-registry/tests/test_candidate_invariants.py",
+        "services/architecture-registry/tests/test_promote_dispatcher.py",
+        "services/architecture-registry/tests/test_registration_handler.py",
+        "services/architecture-registry/tests/test_status_patch_auto_dispatch.py"
+      ]
+    },
+    {
+      "sha": "bd5f3084",
+      "subject": "self-observer: reconcile verify findings",
+      "files": [
+        "infra/deploy/render.yaml",
+        "services/self-observer/requirements.txt"
+      ]
+    },
+    {
+      "sha": "364e4563",
+      "subject": "feat(self-observer): migrate from the-loom, make scan targets registry-driven",
+      "files": [
+        "infra/deploy/render.yaml",
+        "services/self-observer/README.md",
+        "services/self-observer/candidate_client.py",
+        "services/self-observer/config.py",
+        "services/self-observer/github_scanner.py",
+        "services/self-observer/main.py",
+        "services/self-observer/memory_client.py",
+        "services/self-observer/pytest.ini",
+        "services/self-observer/registry_client.py",
+        "services/self-observer/requirements-test.txt",
+        "services/self-observer/requirements.txt",
+        "services/self-observer/signal_rules.py",
+        "services/self-observer/synthesis.py",
+        "services/self-observer/telemetry_client.py",
+        "services/self-observer/tests/__init__.py",
+        "services/self-observer/tests/conftest.py",
+        "services/self-observer/tests/test_memory_client.py",
+        "services/self-observer/tests/test_registry_client.py",
+        "services/self-observer/tests/test_scanner_local.py",
+        "services/self-observer/tests/test_signal_rules.py",
+        "services/self-observer/tests/test_synthesis.py"
+      ]
+    }
+  ]
+}

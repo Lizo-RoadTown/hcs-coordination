@@ -1,0 +1,41 @@
+{
+  "current_timestamp": "2026-06-25T13:22:33.638347+00:00",
+  "prev_timestamp": "2026-06-23T08:09:09.699910+00:00",
+  "current_sha": "ac64ac46ee07cceb2f07526976848aadd056f617",
+  "prev_sha": "7d2a37918d4fd5c4d5ccefb76ef791e2da5d64b0",
+  "current_shape": "mixed",
+  "changes": {
+    "shape": [],
+    "render": [],
+    "node": [],
+    "python": [],
+    "mcp": [],
+    "auth": [],
+    "inventory": []
+  },
+  "commits": [
+    {
+      "sha": "58c5a890",
+      "subject": "feat(docs-mcp): bundle corpus, wire into plugin.json, end-to-end verified \u00e2\u20ac\u201d and sweep meta-talk from docs",
+      "files": [
+        ".gitignore",
+        "apps/docs-site/src/content/docs/explanation/architecture-snapshots.md",
+        "apps/docs-site/src/content/docs/explanation/discipline-stack.md",
+        "apps/docs-site/src/content/docs/explanation/observatory-lenses.md",
+        "apps/docs-site/src/content/docs/explanation/observer-derived-intent.md",
+        "apps/docs-site/src/content/docs/explanation/sharing-intelligence-across-projects.md",
+        "apps/docs-site/src/content/docs/explanation/signal-hierarchy.md",
+        "apps/docs-site/src/content/docs/explanation/signal-interpretation-pattern.md",
+        "apps/docs-site/src/content/docs/how-to/recover-from-common-failures.md",
+        "apps/docs-site/src/content/docs/reference/platform-dependencies.md",
+        "apps/docs-site/src/content/docs/start/names-you-will-see.md",
+        "apps/docs-site/src/content/docs/start/what-stays-on-track.md",
+        "apps/docs-site/src/content/docs/systems/docs-mcp.md",
+        "integrations/claude-code/tapestry-discipline/.claude-plugin/plugin.json",
+        "services/docs-mcp/docs_mcp/corpus.py",
+        "services/docs-mcp/pyproject.toml",
+        "services/docs-mcp/scripts/bundle-corpus.py"
+      ]
+    }
+  ]
+}

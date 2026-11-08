@@ -1,0 +1,38 @@
+{
+  "current_timestamp": "2026-10-07T15:44:40.430976+00:00",
+  "prev_timestamp": "2026-10-06T21:03:04.471534+00:00",
+  "current_sha": "8648f215504885cb09846e07f5436a9711291d69",
+  "prev_sha": "8648f215504885cb09846e07f5436a9711291d69",
+  "current_shape": "mixed",
+  "changes": {
+    "shape": [],
+    "render": [],
+    "node": [
+      "REMOVED package.json: `.claude/worktrees/agent-a76d0551e78a5c669/apps/docs-site/package.json`",
+      "REMOVED package.json: `.claude/worktrees/agent-a76d0551e78a5c669/apps/web-dashboard/package.json`",
+      "REMOVED package.json: `.claude/worktrees/agent-a76d0551e78a5c669/integrations/vscode/package.json`"
+    ],
+    "python": [
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/engine/agency-to-structure/python/pyproject.toml`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/packages/auth/pyproject.toml`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/packages/cli/pyproject.toml`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/packages/sdk/python/pyproject.toml`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/agent-context/requirements-test.txt`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/agent-context/requirements.txt`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/architecture-registry/requirements-test.txt`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/architecture-registry/requirements.txt`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/docs-mcp/pyproject.toml`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/project-observatory/requirements-test.txt`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/project-observatory/requirements.txt`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/project-registry/requirements.txt`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/self-observer/requirements-test.txt`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/self-observer/requirements.txt`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/skill-making/requirements.txt`",
+      "REMOVED manifest: `.claude/worktrees/agent-a76d0551e78a5c669/services/telemetry-ingestion/requirements.txt`"
+    ],
+    "mcp": [],
+    "auth": [],
+    "inventory": []
+  },
+  "commits": []
+}

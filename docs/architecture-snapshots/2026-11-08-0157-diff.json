@@ -1,0 +1,34 @@
+{
+  "current_timestamp": "2026-11-08T01:57:07.156844+00:00",
+  "prev_timestamp": "2026-11-08T00:15:09.213046+00:00",
+  "current_sha": "3087b1702881abe873e219537d0f772ecc7e8d7f",
+  "prev_sha": "284f09666040a423377884e0d4a112b7ebcaeab9",
+  "current_shape": "mixed",
+  "changes": {
+    "shape": [],
+    "render": [
+      "NEW: render.yaml introduced"
+    ],
+    "node": [],
+    "python": [],
+    "mcp": [],
+    "auth": [],
+    "inventory": []
+  },
+  "commits": [
+    {
+      "sha": "13ec845e",
+      "subject": "feat(cli): wire optional shared git-ignored directory + two-layer guard (ADR 0010) (#189)",
+      "files": [
+        ".githooks/pre-commit",
+        ".github/workflows/private-files-check.yml",
+        ".gitignore",
+        "docs/session-reports/2026-11-07-c1dfea63.md",
+        "packages/cli/pyproject.toml",
+        "packages/cli/tapestry_cli/init.py",
+        "packages/cli/tests/test_shared_guard.py",
+        "scripts/check_private_committed.py"
+      ]
+    }
+  ]
+}

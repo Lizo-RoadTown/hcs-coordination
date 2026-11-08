@@ -1,0 +1,29 @@
+{
+  "current_timestamp": "2026-10-02T20:11:29.810568+00:00",
+  "prev_timestamp": "2026-09-28T06:09:25.554943+00:00",
+  "current_sha": "8648f215504885cb09846e07f5436a9711291d69",
+  "prev_sha": "d4e738854a8c1ece4d275008d7be8f5665f183ed",
+  "current_shape": "mixed",
+  "changes": {
+    "shape": [],
+    "render": [],
+    "node": [],
+    "python": [],
+    "mcp": [],
+    "auth": [],
+    "inventory": []
+  },
+  "commits": [
+    {
+      "sha": "43008668",
+      "subject": "feat(cli): tapestry deploy \u00e2\u20ac\u201d create a Render service from the terminal (#175)",
+      "files": [
+        "docs/changelog/2026-09-25-tapestry-deploy-render.md",
+        "packages/cli/pyproject.toml",
+        "packages/cli/tapestry_cli/cli.py",
+        "packages/cli/tapestry_cli/deploy.py",
+        "packages/cli/tests/test_deploy.py"
+      ]
+    }
+  ]
+}

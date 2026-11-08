@@ -1,0 +1,27 @@
+{
+  "current_timestamp": "2026-10-13T21:58:52.125957+00:00",
+  "prev_timestamp": "2026-10-10T22:45:49.718409+00:00",
+  "current_sha": "64dbe3a47169fd81fd376ac807aa4e519c2c0940",
+  "prev_sha": "414b54914e21b35fc5f8b9f7f5620d61abf030f3",
+  "current_shape": "mixed",
+  "changes": {
+    "shape": [],
+    "render": [],
+    "node": [],
+    "python": [],
+    "mcp": [],
+    "auth": [],
+    "inventory": []
+  },
+  "commits": [
+    {
+      "sha": "64dbe3a4",
+      "subject": "fix(cli): make-plugin opt-in memory, UTF-8 hook, multi-plugin marketplace (#183)",
+      "files": [
+        "docs/changelog/2026-10-10-make-plugin-scaffold-fixes.md",
+        "packages/cli/pyproject.toml",
+        "packages/cli/tapestry_cli/make_plugin.py"
+      ]
+    }
+  ]
+}

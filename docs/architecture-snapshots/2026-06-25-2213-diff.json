@@ -1,0 +1,57 @@
+{
+  "current_timestamp": "2026-06-25T22:13:16.066979+00:00",
+  "prev_timestamp": "2026-06-25T13:34:36.787042+00:00",
+  "current_sha": "83d0a8f4507d5a08fe3a3ab8d31935c3cc2fb853",
+  "prev_sha": "ac64ac46ee07cceb2f07526976848aadd056f617",
+  "current_shape": "mixed",
+  "changes": {
+    "shape": [],
+    "render": [],
+    "node": [
+      "NEW package.json: `integrations/vscode/package.json`"
+    ],
+    "python": [],
+    "mcp": [],
+    "auth": [],
+    "inventory": []
+  },
+  "commits": [
+    {
+      "sha": "83d0a8f4",
+      "subject": "feat(vscode): v0.1.0 VS Code extension registering Tapestry MCP servers",
+      "files": [
+        "integrations/vscode/.vscodeignore",
+        "integrations/vscode/LICENSE",
+        "integrations/vscode/README.md",
+        "integrations/vscode/package.json",
+        "integrations/vscode/src/extension.ts",
+        "integrations/vscode/tsconfig.json"
+      ]
+    },
+    {
+      "sha": "f4c7b3b1",
+      "subject": "feat(cli): tapestry make-plugin \u00e2\u20ac\u201d scaffold a personalized, self-host plugin",
+      "files": [
+        "packages/cli/pyproject.toml",
+        "packages/cli/tapestry_cli/cli.py",
+        "packages/cli/tapestry_cli/make_plugin.py"
+      ]
+    },
+    {
+      "sha": "e419bf61",
+      "subject": "fix: remove personal email from published CLI + marketplace manifest",
+      "files": [
+        ".claude-plugin/marketplace.json",
+        "packages/cli/pyproject.toml"
+      ]
+    },
+    {
+      "sha": "c138aca9",
+      "subject": "fix(cli): remove personal deployment defaults; release 0.1.1",
+      "files": [
+        "packages/cli/pyproject.toml",
+        "packages/cli/tapestry_cli/init.py"
+      ]
+    }
+  ]
+}
