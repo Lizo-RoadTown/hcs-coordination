@@ -34,16 +34,20 @@ MODULES = (pre_tool_use, stop_audit, user_prompt_submit, session_start)
 OUT_OF_SCOPE_CWD = r"C:\Users\Liz\SDE_Extraction"
 
 
-def _call(mod, cwd, project_id=None):
-    """Call mod._in_scope(cwd) with LOOM_PROJECT_ID controlled deterministically.
+def _call(mod, cwd, project_id=None, scope_dirs=None):
+    """Call mod._in_scope(cwd) with LOOM_PROJECT_ID and TAPESTRY_SCOPE_DIRS
+    controlled deterministically.
 
-    Replaces os.environ wholesale so an ambient LOOM_PROJECT_ID (e.g. loaded
-    from a project .env at import time) cannot leak into the no-id cases.
+    Replaces os.environ wholesale so ambient values (e.g. loaded from a
+    project .env at import time) cannot leak into the no-opt-in cases.
     """
     env = dict(os.environ)
     env.pop("LOOM_PROJECT_ID", None)
+    env.pop("TAPESTRY_SCOPE_DIRS", None)
     if project_id is not None:
         env["LOOM_PROJECT_ID"] = project_id
+    if scope_dirs is not None:
+        env["TAPESTRY_SCOPE_DIRS"] = scope_dirs
     with mock.patch.dict(os.environ, env, clear=True):
         return mod._in_scope(cwd)
 
@@ -74,31 +78,48 @@ class TestScopeGate(unittest.TestCase):
                 self.assertFalse(_call(mod, OUT_OF_SCOPE_CWD, project_id=""))
                 self.assertFalse(_call(mod, OUT_OF_SCOPE_CWD, project_id="   "))
 
-    def test_substring_paths_in_scope_without_project_id(self):
+    def test_no_hardcoded_substrings(self):
+        # v0.1.24: the plugin ships universal. Paths that USED to be
+        # hardcoded-in-scope are out of scope without an explicit opt-in.
         for cwd in (
             r"C:\Users\Liz\Make_Skills",
-            r"C:\Users\Liz\make-skills",
             r"C:\Users\Liz\the-loom\adapters",
             r"C:\Users\Liz\project-starter",
+            r"templates/_common/foo",
         ):
             for mod in MODULES:
                 with self.subTest(mod=mod.__name__, cwd=cwd):
-                    self.assertTrue(_call(mod, cwd, project_id=None))
+                    self.assertFalse(_call(mod, cwd, project_id=None))
 
-    def test_common_substring_is_case_sensitive(self):
-        # Original behavior preserved: `_common` matched against original case.
+    def test_scope_dirs_allowlist_opts_in(self):
+        # TAPESTRY_SCOPE_DIRS is the path-based opt-in: comma-separated
+        # substrings, matched case-insensitively.
         for mod in MODULES:
             with self.subTest(mod=mod.__name__):
-                self.assertTrue(
-                    _call(mod, r"templates/_common/foo", project_id=None)
-                )
+                self.assertTrue(_call(
+                    mod, r"C:\Users\Liz\the-loom\adapters",
+                    scope_dirs="make_skills, the-loom",
+                ))
+                self.assertTrue(_call(
+                    mod, r"C:\Users\Liz\The-Loom",
+                    scope_dirs="the-loom",
+                ))
+                self.assertFalse(_call(
+                    mod, OUT_OF_SCOPE_CWD,
+                    scope_dirs="make_skills, the-loom",
+                ))
+                # Empty/whitespace entries never match everything.
+                self.assertFalse(_call(
+                    mod, OUT_OF_SCOPE_CWD, scope_dirs=" , ,  ",
+                ))
 
     def test_accepts_pathlib_path(self):
         # session_start passes a Path; the helper must handle non-str cwd.
         for mod in MODULES:
             with self.subTest(mod=mod.__name__):
                 self.assertTrue(
-                    _call(mod, Path(r"C:\Users\Liz\the-loom"), project_id=None)
+                    _call(mod, Path(r"C:\Users\Liz\the-loom"),
+                          scope_dirs="the-loom")
                 )
                 self.assertFalse(
                     _call(mod, Path(OUT_OF_SCOPE_CWD), project_id=None)

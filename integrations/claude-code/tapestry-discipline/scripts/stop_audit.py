@@ -312,10 +312,15 @@ def _since_report_metrics(metrics: dict) -> dict:
     than whole-session totals — is what makes the trigger RECUR: each report
     resets the window, and a fresh boundary of new work re-arms the warning.
     Fixes weeks-long sessions where the end-of-session trigger never fires."""
+    since_turns = metrics["assistant_turns"] - metrics.get("turns_at_last_report", 0)
     return {
-        "assistant_turns": metrics["assistant_turns"] - metrics.get("turns_at_last_report", 0),
+        "assistant_turns": since_turns,
         "tool_calls": metrics["tool_calls"] - metrics.get("tools_at_last_report", 0),
-        "git_action_seen": bool(metrics.get("git_since_last_report", False)),
+        # v0.1.24: a lone git action right after a report (e.g. pushing the
+        # commit the report described) no longer re-arms the warning by
+        # itself — it must come with at least 2 new assistant turns. The
+        # whole-session gate in _is_substantive_boundary is unchanged.
+        "git_action_seen": bool(metrics.get("git_since_last_report", False)) and since_turns >= 2,
     }
 
 
@@ -350,31 +355,25 @@ def _write_marker(session_id: str, reports_at_warn: int, turns_at_warn: int) -> 
 def _in_scope(cwd) -> bool:
     """True if tapestry-discipline hooks should run for this repo.
 
-    In scope if EITHER the working-directory path contains a known loom
-    substring (Make_Skills / the-loom / project-starter / _common), OR
-    LOOM_PROJECT_ID is set — the explicit per-project opt-in a consuming
-    project declares via its `.env` (loaded into os.environ by
-    _observability._load_dotenv at import time).
+    In scope if LOOM_PROJECT_ID is set (the explicit per-project opt-in a
+    consuming project declares via its `.env`, loaded into os.environ by
+    _observability._load_dotenv at import time), OR the working-directory
+    path matches a substring in the optional TAPESTRY_SCOPE_DIRS env
+    allowlist (comma-separated, case-insensitive). No project names are
+    hardcoded — the plugin ships universal; each operator configures their
+    own scope.
 
-    v0.1.12: added the LOOM_PROJECT_ID clause. Before this the gate was
-    substring-only, so a fully-wired consuming project (LOOM_PROJECT_ID
-    set, CLAUDE.md referencing the discipline) silently no-op'd every hook
-    — e.g. SDE_Extraction. Honoring LOOM_PROJECT_ID closes that class of
-    bug for every future consumer, not just one repo.
+    v0.1.24: converged with session_start's universal gate. The hardcoded
+    Make_Skills/the-loom/tapestry/project-starter/_common substrings are
+    gone; those repos opt in via the LOOM_PROJECT_ID already in their .env.
     """
-    cwd_s = str(cwd or "")
-    cwd_l = cwd_s.lower()
-    if (
-        "make_skills" in cwd_l
-        or "make-skills" in cwd_l
-        or "the-loom" in cwd_l
-        or "tapestry" in cwd_l
-        or "project-starter" in cwd_l
-        or "_common" in cwd_s
-    ):
-        return True
     if os.environ.get("LOOM_PROJECT_ID", "").strip():
         return True
+    cwd_l = str(cwd or "").lower()
+    allow = os.environ.get("TAPESTRY_SCOPE_DIRS", "")
+    for sub in (s.strip().lower() for s in allow.split(",") if s.strip()):
+        if sub and sub in cwd_l:
+            return True
     return False
 
 

@@ -479,7 +479,7 @@ class TestScanAndEmit(unittest.TestCase):
             def mock_post(**kwargs):
                 return {"id": "cand-test-skill", "status": "draft"}
 
-            def mock_patch(cand_id, status, reason):
+            def mock_patch(cand_id, status, reason, **kwargs):
                 patches_seen.append((cand_id, status))
                 return {"id": cand_id, "status": status}
 
@@ -796,7 +796,7 @@ class TestScanAndEmitV2Ideas(unittest.TestCase):
             def mock_post(**kwargs):
                 return {"id": "idea-cand", "status": "draft"}
 
-            def mock_patch(cand_id, status, reason):
+            def mock_patch(cand_id, status, reason, **kwargs):
                 patches_seen.append((cand_id, status))
                 return {"id": cand_id, "status": status}
 

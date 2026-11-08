@@ -106,7 +106,16 @@ CITATION_PATTERNS = (
     re.compile(r"https?://[^\s)\]]+"),
 )
 
-RUNTIME_PATHS = ("platform/", "platform\\", "web/", "web\\")
+# v0.1.24: tapestry's runtime lives in services/, apps/, packages/ — the old
+# platform/ and web/ entries (Make_Skills layout) are kept for legacy repos.
+# Before this fix the citation check could never fire in tapestry at all.
+RUNTIME_PATHS = (
+    "services/", "services\\",
+    "apps/", "apps\\",
+    "packages/", "packages\\",
+    "platform/", "platform\\",
+    "web/", "web\\",
+)
 
 # v0.1.3: dual-mode trigger should fire only on actual runtime-code edits.
 # Docs and config files that merely mention the trigger keywords (e.g., a
@@ -224,31 +233,25 @@ def emit_block(reason: str) -> None:
 def _in_scope(cwd) -> bool:
     """True if tapestry-discipline hooks should run for this repo.
 
-    In scope if EITHER the working-directory path contains a known loom
-    substring (Make_Skills / the-loom / project-starter / _common), OR
-    LOOM_PROJECT_ID is set — the explicit per-project opt-in a consuming
-    project declares via its `.env` (loaded into os.environ by
-    _observability._load_dotenv at import time).
+    In scope if LOOM_PROJECT_ID is set (the explicit per-project opt-in a
+    consuming project declares via its `.env`, loaded into os.environ by
+    _observability._load_dotenv at import time), OR the working-directory
+    path matches a substring in the optional TAPESTRY_SCOPE_DIRS env
+    allowlist (comma-separated, case-insensitive). No project names are
+    hardcoded — the plugin ships universal; each operator configures their
+    own scope.
 
-    v0.1.12: added the LOOM_PROJECT_ID clause. Before this the gate was
-    substring-only, so a fully-wired consuming project (LOOM_PROJECT_ID
-    set, CLAUDE.md referencing the discipline) silently no-op'd every hook
-    — e.g. SDE_Extraction. Honoring LOOM_PROJECT_ID closes that class of
-    bug for every future consumer, not just one repo.
+    v0.1.24: converged with session_start's universal gate. The hardcoded
+    Make_Skills/the-loom/tapestry/project-starter/_common substrings are
+    gone; those repos opt in via the LOOM_PROJECT_ID already in their .env.
     """
-    cwd_s = str(cwd or "")
-    cwd_l = cwd_s.lower()
-    if (
-        "make_skills" in cwd_l
-        or "make-skills" in cwd_l
-        or "the-loom" in cwd_l
-        or "tapestry" in cwd_l
-        or "project-starter" in cwd_l
-        or "_common" in cwd_s
-    ):
-        return True
     if os.environ.get("LOOM_PROJECT_ID", "").strip():
         return True
+    cwd_l = str(cwd or "").lower()
+    allow = os.environ.get("TAPESTRY_SCOPE_DIRS", "")
+    for sub in (s.strip().lower() for s in allow.split(",") if s.strip()):
+        if sub and sub in cwd_l:
+            return True
     return False
 
 
