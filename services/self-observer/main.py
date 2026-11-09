@@ -166,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
     endpoints = Endpoints.from_env()
     auth = AuthConfig.from_env()
     client = CandidateClient(endpoints, auth)
-    telemetry = TelemetryClient(endpoints)
+    telemetry = TelemetryClient(endpoints, auth)
 
     if args.local:
         # Local scans read the filesystem; discovery targets remote repos, so
