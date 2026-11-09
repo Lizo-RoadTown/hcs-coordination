@@ -478,6 +478,7 @@ def log_event(
     session_id: str | None = None,
     tool_name: str | None = None,
     project_id: str | None = None,
+    attrs: dict[str, Any] | None = None,
 ) -> None:
     """Record a hook event.
 
@@ -526,6 +527,12 @@ def log_event(
     pid = project_id or os.environ.get("LOOM_PROJECT_ID")
     if pid:
         entry["project_id"] = pid
+    # v0.1.26: extra contract attributes (e.g. B1's tapestry.artifact_ref).
+    # Additive only — never overrides a core key set above.
+    if attrs:
+        for k, v in attrs.items():
+            if v is not None and k not in entry:
+                entry[k] = v
 
     # 1. Local (must run; never raises).
     _write_local_jsonl(entry)
