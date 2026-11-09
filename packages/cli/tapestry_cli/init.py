@@ -479,6 +479,13 @@ _GITIGNORE_LINES = [
     "# the .shared symlink itself is ignored, not just a .shared/ directory.",
     ".shared",
     ".tapestry-shared.local",
+    "",
+    "# Auto session-reports — the tapestry-discipline Stop hook writes (and tries to",
+    "# commit) docs/session-reports/<date>-<session>.md each session. Ignoring the dir",
+    "# keeps them out of this repo's history (the report also goes to loom-memory), and",
+    "# the hook's `git add` then no-ops instead of minting chore commits. Delete this",
+    "# line if you want a committed session-report trail (tapestry itself keeps one).",
+    "docs/session-reports/",
 ]
 
 _DOCS_ARCHITECTURE_README = """# Architecture
