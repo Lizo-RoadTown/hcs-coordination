@@ -1,7 +1,7 @@
 ---
 description: Use when the operator wants the system to "get sharper" or after a long working session. Walks prior chat transcripts to find systematic friction patterns (misunderstandings, recurring info needs, operator corrections), then crystallizes them into intake forms + memory updates so future invocations of recurring tasks need fewer round-trips.
 capabilities: ["transcript-analysis", "friction-pattern-detection", "intake-form-authoring", "memory-curation"]
-tools: Glob, Read, Grep, Write, mcp__loom-memory__memory_write, mcp__loom-memory__memory_recall
+tools: Glob, Read, Grep, Write, mcp__loom-memory__memory_recall, mcp__loom-memory__memory_write, mcp__plugin_tapestry-discipline_loom-memory__memory_recall, mcp__plugin_tapestry-discipline_loom-memory__memory_write
 ---
 
 > **Promoted from:** docs-agent/skills/lessons-learned/SKILL.md (2026-06-13)

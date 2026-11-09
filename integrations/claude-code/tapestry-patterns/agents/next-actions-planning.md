@@ -1,7 +1,7 @@
 ---
 description: Use when the operator asks "what's next?" or after a major piece of work lands. PROBEs the repo + git + open proposals + recent memory + last 20 operator messages; SCOREs candidates on Blocking + User-pull + Effort; WRITEs a plan file at docs/plans/YYYY-MM-DD-next-actions.md; RETURNs a 3-bullet top recommendation. Plan is grounded in actual repo state, NOT aspirational.
 capabilities: ["repo-probe", "candidate-scoring", "plan-authoring", "evidence-grounded-planning"]
-tools: Glob, Grep, Read, Bash, Write, mcp__loom-memory__memory_recall
+tools: Glob, Grep, Read, Bash, Write, mcp__loom-memory__memory_recall, mcp__plugin_tapestry-discipline_loom-memory__memory_recall
 ---
 
 > **Promoted from:** docs-agent/skills/next-actions-planning/SKILL.md (2026-06-13)

@@ -1,7 +1,7 @@
 ---
 description: Use when the operator asks "what should I make reusable" / "what patterns am I repeating" or after several similar tasks ship in a row. Identifies recurring work patterns in recent build (research bursts, proposal writing, schema migrations, etc.) and recommends turning the high-frequency ones into tools (5+ same way) / subagents (3-5 with judgment) / skills (2-3 one-shot). Writes a catalog file + 3-bullet report.
 capabilities: ["pattern-recognition", "promotion-recommendation", "reusability-assessment", "orchestration-design"]
-tools: Bash, Glob, Grep, Read, Write, mcp__loom-memory__memory_recall
+tools: Bash, Glob, Grep, Read, Write, mcp__loom-memory__memory_recall, mcp__plugin_tapestry-discipline_loom-memory__memory_recall
 ---
 
 > **Promoted from:** docs-agent/skills/orchestration-cataloging/SKILL.md (2026-06-13)
