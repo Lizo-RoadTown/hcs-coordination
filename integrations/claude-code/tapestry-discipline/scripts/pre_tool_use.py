@@ -94,6 +94,51 @@ else:
     def now_ms() -> int:
         return int(time.time() * 1000)
 
+
+# v0.1.26 (B1): skill attribution, loaded the same absolute-path way as
+# _observability above (sys.path is unreliable under the Node launcher). If it
+# fails to load, skill capture still records the event, just unresolved.
+_attr_path = Path(__file__).resolve().parent / "skill_attribution.py"
+_attr_spec = _importlib_util.spec_from_file_location("skill_attribution", _attr_path)
+resolve_skill = None
+if _attr_spec is not None and _attr_spec.loader is not None:
+    try:
+        _attr_mod = _importlib_util.module_from_spec(_attr_spec)
+        _attr_spec.loader.exec_module(_attr_mod)
+        resolve_skill = _attr_mod.resolve_skill
+    except Exception as _attr_err:  # noqa: BLE001
+        try:
+            _fl = Path.home() / ".claude" / "logs" / "hook-import-errors.log"
+            _fl.parent.mkdir(parents=True, exist_ok=True)
+            with _fl.open("a", encoding="utf-8") as _f:
+                _f.write(f"{Path(__file__).name}: skill_attribution load failed: {_attr_err!r}\n")
+        except Exception:  # noqa: BLE001
+            pass
+
+
+def _capture_skill_invocation(tool_input: dict, cwd: str) -> None:
+    """B1 (pl-005): record one event per Skill invocation, carrying a stable
+    artifact_ref when resolvable and an explicit unresolved marker when not.
+    Unresolved events are never dropped and never given a fake ref. Never
+    raises — capture must not break the hook."""
+    try:
+        raw = str((tool_input or {}).get("skill") or "")
+        if resolve_skill is not None:
+            ref, resolution, name = resolve_skill(raw, cwd or None)
+        else:
+            ref, resolution, name = None, "unresolved", raw
+        log_event(
+            "PreToolUse", "skill_invocation",
+            action="skill_invocation",
+            attrs={
+                "tapestry.artifact_ref": ref,
+                "tapestry.artifact_resolution": resolution,
+                "tapestry.skill_name": name,
+            },
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
 # v0.1.3: three citation forms accepted.
 # 1. file.ext:line — the original strict form.
 # 2. bare file.ext path with at least one slash — citing a file as a whole
@@ -302,6 +347,14 @@ def main() -> int:
     cwd = data.get("cwd") or ""
 
     os.environ["LOOM_HOOK_TOOL_NAME"] = tool_name
+
+    # B1 (v0.1.26): capture every Skill invocation with artifact identity.
+    # Before the scope guard, matching how log_event records out-of-scope
+    # events; the Skill tool has no other check here, so return after it.
+    if tool_name == "Skill":
+        _capture_skill_invocation(tool_input, cwd)
+        log_event("PreToolUse", "end", exit_code=0, elapsed_ms=now_ms() - start, action="noop", note="skill_captured")
+        return 0
 
     # Check 3 (v0.1.23): project-creation PROBE reminder. Runs BEFORE the
     # scope guard on purpose — a brand-new project has no LOOM_PROJECT_ID,

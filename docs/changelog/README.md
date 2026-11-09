@@ -65,7 +65,8 @@ Newest first. (Older history predating the trail lives in `import-map.md` and gi
 | Date | Kind | Change | PRs |
 |---|---|---|---|
 | 2026-11-09 | fix | [Agents request memory tools under both registration names (patterns 0.1.10)](2026-11-09-agent-memory-grants-both-names.md) | this PR |
-| 2026-11-08 | feature | [C1 — self-observer reads real telemetry (wire X4 closed)](2026-11-08-c1-self-observer-real-telemetry-read.md) | this PR |
+| 2026-11-09 | feature | [B1 — skill invocations captured with a stable artifact_ref (discipline 0.1.26)](2026-11-09-b1-skill-attribution.md) | this PR |
+| 2026-11-08 | feature | [C1 — self-observer reads real telemetry (wire X4 closed)](2026-11-08-c1-self-observer-real-telemetry-read.md) | #199 |
 | 2026-11-08 | feature | [discipline 0.1.25 — decision-routing check + session-report union-merge](2026-11-08-discipline-0-1-25-decision-routing.md) | #198 |
 | 2026-11-08 | migration | [Telemetry cutover executed — receiver persists, reads authenticated](2026-11-08-telemetry-cutover-executed.md) | #197 |
 | 2026-11-08 | fix | [auth: anonymous requests no longer inherit the self-host tenant on hosted deployments](2026-11-08-auth-no-anon-fallback-on-hosted.md) | #196 |
