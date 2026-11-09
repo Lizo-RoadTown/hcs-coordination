@@ -240,7 +240,24 @@ def _entry_to_row(entry: dict[str, Any], tenant_id: str) -> dict[str, Any]:
             continue  # auth/tenant signal, not a stored attr
         if key in _TAPESTRY_COLUMN_KEYS:
             continue  # handled as a typed column below
+        if key == "tapestry.artifact_ref":
+            continue  # handled as the typed artifact_ref column below
         attrs[key] = value
+
+    # B1 (pl-005): the emitter's resolved artifact identity -> the typed
+    # artifact_ref column, which the read API and classifiers key on. Accept
+    # only the two 005 shapes (005:85 — `repo#path` or `skill/<id>`) so a
+    # malformed value can never be scored as a real artifact; keep it in attrs
+    # instead. Unresolved invocations carry no ref (column stays NULL) plus
+    # tapestry.artifact_resolution="unresolved" in attrs — countable, never
+    # dropped, never per-artifact scored.
+    aref = entry.get("tapestry.artifact_ref")
+    if aref is not None:
+        s = str(aref).strip()
+        if s and len(s) <= 512 and ("#" in s or s.startswith("skill/")):
+            row["artifact_ref"] = s
+        else:
+            attrs["tapestry.artifact_ref_raw"] = aref
 
     # Typed coordination columns.
     cc = entry.get("tapestry.coordination_context_id")

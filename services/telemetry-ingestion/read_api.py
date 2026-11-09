@@ -276,22 +276,31 @@ async def get_counts(
 # Containment predicates hit the attrs GIN index (jsonb_path_ops). Keys are the
 # canonical contract attributes (otel-coordination-contract.md:46-52), stored
 # inside attrs by the emit-side mapper (Phase 0 task 4).
+# JSON literals use doubled braces: this SQL goes through str.format() to
+# insert {project_filter}, which would otherwise read `{"tapestry...` as a
+# placeholder (raised KeyError -> HTTP 500 on every call until 2026-11-09).
 _SIGNALS_AGG_SQL = """
 SELECT
     COUNT(*) AS total,
     COUNT(*) FILTER (
-        WHERE attrs @> '{"tapestry.friction_present": true}'::jsonb
+        WHERE attrs @> '{{"tapestry.friction_present": true}}'::jsonb
     ) AS friction,
     COUNT(*) FILTER (
-        WHERE attrs @> '{"tapestry.memory_miss": true}'::jsonb
+        WHERE attrs @> '{{"tapestry.memory_miss": true}}'::jsonb
     ) AS memory_miss,
     COUNT(*) FILTER (WHERE outcome = 'error') AS errors,
     COUNT(*) FILTER (
-        WHERE attrs @> '{"tapestry.upskill_candidate_present": true}'::jsonb
+        WHERE attrs @> '{{"tapestry.upskill_candidate_present": true}}'::jsonb
     ) AS upskill_candidates,
     COUNT(*) FILTER (
-        WHERE attrs @> '{"tapestry.correction_present": true}'::jsonb
-    ) AS corrections
+        WHERE attrs @> '{{"tapestry.correction_present": true}}'::jsonb
+    ) AS corrections,
+    COUNT(*) FILTER (
+        WHERE attrs @> '{{"tapestry.artifact_resolution": "resolved"}}'::jsonb
+    ) AS skill_invocations_resolved,
+    COUNT(*) FILTER (
+        WHERE attrs @> '{{"tapestry.artifact_resolution": "unresolved"}}'::jsonb
+    ) AS skill_invocations_unresolved
 FROM telemetry_events
 WHERE ts >= EXTRACT(EPOCH FROM now()) - (%(window_days)s::bigint * 86400)
   {project_filter}
@@ -360,6 +369,13 @@ async def get_signals(
         "correction_rate": _rate(agg["corrections"]),
         "coordination_state_counts": per_state,
         "upskill_candidates": int(agg["upskill_candidates"] or 0),
+        # B1 (pl-005): skill invocations by attribution outcome. Unresolved
+        # ones carry no artifact_ref (excluded from per-artifact reads and
+        # classifiers) but stay visible here — never silently dropped.
+        "skill_invocations": {
+            "resolved": int(agg["skill_invocations_resolved"] or 0),
+            "unresolved": int(agg["skill_invocations_unresolved"] or 0),
+        },
     }
 
 
