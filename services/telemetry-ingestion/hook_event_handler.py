@@ -111,6 +111,24 @@ _TAPESTRY_COLUMN_KEYS: dict[str, str] = {
     "tapestry.surface_type": "surface_type",
 }
 
+# VARCHAR widths of telemetry_events' text columns, from
+# infra/migrations/005_init_telemetry.sql:73-95. Enforced in _entry_to_row.
+_COLUMN_WIDTHS: dict[str, int] = {
+    "project_slug": 128,
+    "session_id": 128,
+    "agent_id": 128,
+    "agent_role": 64,
+    "surface_id": 128,
+    "surface_type": 64,
+    "hook_name": 64,
+    "tool_name": 128,
+    "phase": 8,
+    "artifact_ref": 512,
+}
+# Columns declared NOT NULL DEFAULT '' — an oversized value becomes '' rather
+# than being omitted, matching the column's own default.
+_NOT_NULL_DEFAULT_EMPTY = frozenset({"project_slug", "session_id"})
+
 # Bare entry keys consumed into typed columns (never duplicated into attrs).
 _CONSUMED_BARE_KEYS = frozenset(
     {
@@ -285,6 +303,20 @@ def _entry_to_row(entry: dict[str, Any], tenant_id: str) -> dict[str, Any]:
         val = entry.get(tkey)
         if val is not None:
             row[col] = str(val)
+
+    # Enforce 005's column widths here, so one oversized value from any emitter
+    # degrades that field instead of failing the whole batch. Postgres rejects
+    # an over-long VARCHAR with StringDataRightTruncation, which aborted the
+    # entire /hook-events insert in production on 2026-11-09. The raw value is
+    # kept in attrs as <column>_raw.
+    for col, width in _COLUMN_WIDTHS.items():
+        val = row.get(col)
+        if isinstance(val, str) and len(val) > width:
+            attrs[f"{col}_raw"] = val
+            if col in _NOT_NULL_DEFAULT_EMPTY:
+                row[col] = ""
+            else:
+                del row[col]
 
     row["attrs"] = attrs
     return row

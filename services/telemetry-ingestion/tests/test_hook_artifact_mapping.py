@@ -26,7 +26,7 @@ def _entry(**extra):
     base = {
         "ts": "2026-11-09T10:00:00+00:00",
         "hook": "PreToolUse",
-        "phase": "skill_invocation",
+        "phase": "skill",
         "tool_name": "Skill",
         "session_id": "s1",
         "project_id": "tapestry",
@@ -96,3 +96,28 @@ def test_signals_reports_skill_invocation_counts(client, fake_db):
                    headers={"Authorization": f"Bearer {TEST_READ_KEY}"})
     assert r.status_code == 200
     assert r.json()["skill_invocations"] == {"resolved": 3, "unresolved": 2}
+
+
+# --- 005 column widths (production 500 on 2026-11-09: phase VARCHAR(8)) ---
+
+def test_overlong_phase_degrades_field_not_batch():
+    row = heh._entry_to_row(_entry(phase="skill_invocation"), TENANT)
+    assert "phase" not in row
+    assert row["attrs"]["phase_raw"] == "skill_invocation"
+
+
+def test_overlong_not_null_column_becomes_empty_default():
+    row = heh._entry_to_row(_entry(project_id="p" * 200), TENANT)
+    assert row["project_slug"] == ""
+    assert row["attrs"]["project_slug_raw"] == "p" * 200
+
+
+def test_overlong_nullable_column_omitted():
+    row = heh._entry_to_row(_entry(tool_name="t" * 200), TENANT)
+    assert "tool_name" not in row
+    assert row["attrs"]["tool_name_raw"] == "t" * 200
+
+
+def test_skill_phase_fits():
+    row = heh._entry_to_row(_entry(), TENANT)
+    assert row["phase"] == "skill"
