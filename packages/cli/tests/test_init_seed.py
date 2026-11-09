@@ -89,6 +89,8 @@ def test_gitignore_has_env_and_snapshot_block(tmp_path):
     assert "!docs/architecture-snapshots/.gitkeep" in gi
     # Auto session-reports from the Stop hook must not accrue as chore commits.
     assert "docs/session-reports/" in gi
+    # Registry UUID + local context must stay untracked (project-launch kit table).
+    assert ".project-intelligence/" in gi
 
 
 def test_gitignore_appends_missing_lines_without_clobber(tmp_path):
