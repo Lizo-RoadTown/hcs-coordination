@@ -48,8 +48,8 @@ Telemetry ingestion stays here; other modules read it over HTTP.
 | `services/self-observer` | education-lab (engine) | **live from tapestry** (cron `crn-daedvggu01pc73e3r820`, 6-hourly, OBSERVER_JWT set) | same-name repoint; its env lives on the Render service and survives |
 | `services/project-observatory` | education-lab (engine) | the only live instance is a `/health` stub from the-loom; the signal code here has never been deployed | first deployment happens in education-lab; tapestry's copy is source material, not a service to move |
 | `engine/local-observer`, `engine/agency-to-structure`, `engine/adapters/*` | education-lab (engine) | not deployed | copy as source; adapters overlap education domain packages |
-| `apps/web-dashboard` | lens-core (interface) | live, Vercel | move with the console |
-| `apps/docs-site` observatory console (`src/pages/observatory.astro`) | lens-core (interface) | live, Vercel project `tapestry` | **needs a `/observatory` redirect** from the docs site; the rest of the docs site stays |
+| `apps/web-dashboard` | lens-core (interface) | **not deployed.** The live dashboard at `loom.humancensys.com` is the Vercel project `the-loom`, built from **the-loom's** `apps/web-dashboard`; that copy reads `LOOM_DASHBOARD_JWT` (`the-loom/apps/web-dashboard/app/page.tsx:33`) | lens-core takes the canonical copy (decide which of the two copies; the live one is the-loom's), then repoints the `the-loom` Vercel project's source. **Do not retire the-loom's copy first:** it is the live one |
+| `apps/docs-site` observatory console (`src/pages/observatory.astro`) | lens-core (interface) | live, Vercel project `tapestry` (Astro; `tapestry-khaki.vercel.app`) | **needs a `/observatory` redirect** from the docs site; the rest of the docs site stays |
 | `apps/admin-console`, `packages/ui` | lens-core (interface), or retire | not deployed | decide at the interface move |
 | `docs/architecture` observatory docs | lens-core | — | with the console |
 | master-plan steps **C2** (classifier) and **C3** (console) | education-lab and lens-core | not started | owned there now; Tapestry hands over the plan rows and evidence |
