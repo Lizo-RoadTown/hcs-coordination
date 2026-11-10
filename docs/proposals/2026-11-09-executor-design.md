@@ -159,6 +159,10 @@ milestone.
    tapestry-patterns, with green required checks, rollback armed, and the evaluation watch on.
    Everything else stays approval-required. Without such a grant, the executor can only ever
    reach a green PR, and M2 fails by design.
+   **Answered 2026-11-10:** the operator granted the recommended scope. New `kind=skill`
+   additions to tapestry-patterns may merge and install without a per-change click when the
+   required checks are green, rollback is armed and the evaluation watch is on. Everything
+   else stays approval-required (loom memory `decision-operator-approvals-batch-2026-11-10`).
 2. **(Research, Tapestry's) Which change worker runs first.** The candidates are:
    - your GitHub Copilot subscription's coding agent, assigned through an issue (no new
      billing, if your plan includes it);
