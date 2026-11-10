@@ -1,0 +1,53 @@
+name: roadmap
+
+# The fleet roadmap (H3, handed off from hcs-observatory). Checks roadmap/roadmap.yaml
+# against the whole-system module list, which lives in hcs-decomposition (H6), and
+# checks that roadmap/ROADMAP.md is current. hcs-decomposition is private, so the
+# checkout needs the FLEET_READ_TOKEN repo secret: a fine-grained read token that
+# can read that repo.
+
+on:
+  push:
+    branches: [main]
+    paths: ["roadmap/**", ".github/workflows/roadmap.yml"]
+  pull_request:
+    paths: ["roadmap/**", ".github/workflows/roadmap.yml"]
+  workflow_dispatch:
+
+jobs:
+  roadmap:
+    name: roadmap valid
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Require the read token for hcs-decomposition
+        env:
+          FLEET_READ_TOKEN: ${{ secrets.FLEET_READ_TOKEN }}
+        run: |
+          if [ -z "$FLEET_READ_TOKEN" ]; then
+            echo "::error::FLEET_READ_TOKEN secret is not set. The roadmap check needs read access to the private hcs-decomposition repo (the whole-system module list). Add it under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Lizo-RoadTown/hcs-decomposition
+          token: ${{ secrets.FLEET_READ_TOKEN }}
+          path: _whole
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install "pyyaml>=6.0" "pytest>=8.0"
+
+      - name: Roadmap is valid and ROADMAP.md is current
+        env:
+          ROADMAP_WHOLE: _whole/decomposition.json
+        run: python roadmap/roadmap.py check
+
+      - name: Tests
+        env:
+          ROADMAP_WHOLE: ${{ github.workspace }}/_whole/decomposition.json
+        run: python -m pytest -q roadmap/tests

@@ -64,6 +64,7 @@ Newest first. (Older history predating the trail lives in `import-map.md` and gi
 
 | Date | Kind | Change | PRs |
 |---|---|---|---|
+| 2026-11-10 | migration | [H3: the fleet roadmap arrives in hcs-coordination](2026-11-10-h3-roadmap-arrives.md) | this PR |
 | 2026-11-10 | chore | [References updated for the rename tapestry → hcs-coordination](2026-11-10-rename-references-hcs-coordination.md) | this PR |
 | 2026-11-10 | fix | [self-observer follows GitHub repo-rename redirects](2026-11-10-self-observer-follows-repo-renames.md) | this PR |
 | 2026-11-09 | fix | [B1 phase width: skill events fit 005, and the receiver enforces column widths (discipline 0.1.27)](2026-11-09-b1-phase-width-fix.md) | this PR |
