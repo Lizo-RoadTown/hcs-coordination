@@ -18,7 +18,7 @@
       "license": "Apache-2.0",
       "category": "discipline",
       "tags": ["discipline", "hooks", "agent-behavior", "tapestry", "probe-first", "friction-as-memory", "observability", "otel", "coordination-reinforcement"],
-      "repository": "https://github.com/Lizo-RoadTown/tapestry"
+      "repository": "https://github.com/Lizo-RoadTown/hcs-coordination"
     },
     {
       "name": "tapestry-patterns",
@@ -29,7 +29,7 @@
       "license": "Apache-2.0",
       "category": "patterns-library",
       "tags": ["patterns-library", "canonical-home", "tapestry", "agents", "skills", "tools", "recursive-skill-engine"],
-      "repository": "https://github.com/Lizo-RoadTown/tapestry"
+      "repository": "https://github.com/Lizo-RoadTown/hcs-coordination"
     }
   ]
 }

@@ -978,7 +978,7 @@ def run(args: argparse.Namespace) -> int:
     print()
     print(f"Next steps:")
     print(f"  1. If you don't already have the tapestry plugins installed:")
-    print(f"       /plugin marketplace add Lizo-RoadTown/tapestry")
+    print(f"       /plugin marketplace add Lizo-RoadTown/hcs-coordination")
     print(f"       /plugin install tapestry-discipline@tapestry")
     print(f"       /plugin install tapestry-patterns@tapestry")
     print(f"  2. Start a Claude Code session here. The SessionStart hook auto-recalls")

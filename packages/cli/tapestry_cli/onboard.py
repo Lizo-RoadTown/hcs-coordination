@@ -77,7 +77,7 @@ def _print_operator_epilogue() -> None:
     print()
     print("  1. In Claude Code chat, register the tapestry marketplace + install the plugins:")
     print()
-    print("       /plugin marketplace add Lizo-RoadTown/tapestry")
+    print("       /plugin marketplace add Lizo-RoadTown/hcs-coordination")
     print("       /plugin install tapestry-discipline@tapestry")
     print("       /plugin install tapestry-patterns@tapestry")
     print()

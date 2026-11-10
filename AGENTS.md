@@ -6,7 +6,7 @@ Project context for Codex. Loaded into every conversation. Keep it tight; subsys
 
 ## CORE DIRECTIVE 1 — loom-memory access is mandatory
 
-Every session in this repo MUST have the `loom-memory` MCP server reachable. Tools: `memory_read`, `memory_write`, `memory_recall`, `memory_search`, `memory_list`, `memory_delete`. Endpoint: `https://loom-agent-context.onrender.com/mcp/memory/`. The `.mcp.json` here is wired with the URL; v0.1.8 of loom-agent-context added a self-host fallback so no JWT header is needed (each operator gets their own fallback tenant).
+Every session in this repo MUST have the `loom-memory` MCP server reachable. Tools: `memory_read`, `memory_write`, `memory_recall`, `memory_search`, `memory_list`, `memory_delete`. Endpoint: `https://loom-agent-context.onrender.com/mcp/memory/`. The `.mcp.json` here is wired with the URL and `Authorization: Bearer ${TAPESTRY_MEMORY_API_KEY}` (env-ref, never a literal). **Authentication is required:** anonymous access is off in production (anonymous REST and MCP requests return 401, verified 2026-11-10), so a missing or unset key means no memory.
 
 If the SessionStart additionalContext shows `*** CONCRETE-RULE VIOLATION DETECTED ***` — **halt all substantive work and report to the operator.** Do not proceed silently using only in-session context.
 
@@ -52,7 +52,7 @@ This boundary survives the migration to Tapestry: it becomes the rule for what l
 ## Discipline plugin (required)
 
 ```text
-/plugin marketplace add Lizo-RoadTown/tapestry
+/plugin marketplace add Lizo-RoadTown/hcs-coordination
 /plugin install tapestry-discipline@tapestry
 ```
 

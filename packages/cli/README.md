@@ -1,6 +1,6 @@
 # tapestry-cli
 
-The command-line interface for [Tapestry](https://github.com/Lizo-RoadTown/tapestry) — project intelligence for AI-native teams.
+The command-line interface for [Tapestry](https://github.com/Lizo-RoadTown/hcs-coordination) — project intelligence for AI-native teams.
 
 Wire a project into the platform, then open the live console. Stdlib-only, no third-party dependencies, no model downloads — it works the moment `pip install` completes, on Windows, macOS, and Linux.
 
