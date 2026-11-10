@@ -128,7 +128,9 @@ def _capture_skill_invocation(tool_input: dict, cwd: str) -> None:
         else:
             ref, resolution, name = None, "unresolved", raw
         log_event(
-            "PreToolUse", "skill_invocation",
+            # phase is VARCHAR(8) in 005 (infra/migrations/005_init_telemetry.sql:84);
+            # "skill_invocation" (16) made Postgres reject the whole batch.
+            "PreToolUse", "skill",
             action="skill_invocation",
             attrs={
                 "tapestry.artifact_ref": ref,
