@@ -156,7 +156,14 @@ async def scan_github(
     if auth.github_token:
         headers["Authorization"] = f"Bearer {auth.github_token}"
 
-    async with httpx.AsyncClient(timeout=30.0, headers=headers) as client:
+    # follow_redirects: GitHub answers a renamed repo's old name with HTTP 301. On
+    # 2026-11-10 all six module repos were renamed (tapestry -> hcs-coordination etc.),
+    # and httpx does not follow redirects by default. Every scan of an old name
+    # therefore hit the "not 200" branch below and returned with nothing scanned, while
+    # the cron still reported success. Entries keep target.repo (the name they were
+    # scanned under), so artifact refs stay consistent with what B1 captures; renaming
+    # those refs is a separate, coordinated decision.
+    async with httpx.AsyncClient(timeout=30.0, headers=headers, follow_redirects=True) as client:
         for target in targets:
             for sub_path in target.paths:
                 async for entry in _walk_path(client, target, sub_path):
