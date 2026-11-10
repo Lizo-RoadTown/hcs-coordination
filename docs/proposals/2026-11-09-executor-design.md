@@ -74,9 +74,18 @@ flowchart LR
    acts only on candidates with an approving policy decision.
 2. **Authority check.** Execution permissions come from the observatory's settings, which the
    target architecture says Tapestry enforces. They are expressed per (candidate kind, target
-   module, risk). The default, until the interface exists, is that nothing auto-merges. The
-   executor still runs every step up to a green PR, so requirement 4 is met up to the merge
-   approval, and the approval is one click instead of a manual build.
+   module, risk). The safe **starting** default, until the interface exists, is that nothing
+   auto-merges, and the executor runs every step up to a green PR.
+   **That default does not satisfy requirement 4.** Requirement 4 says a candidate the operator
+   must advance by hand does not complete the workflow, and the master plan says "no extra user
+   prompt advances routine authorized work" (`master-plan-personal-loop.md:18`). Under the
+   start default, every install waits for a click, so **M2 cannot pass**. Requirement 4 is met
+   only when the operator has **pre-authorized** at least one (kind, target, risk) in advance.
+   For example: new `kind=skill` additions to tapestry-patterns with green required checks and
+   the evaluation watch armed. Within that authority the executor merges and installs without
+   prompting. Anything outside it becomes an explicit exception for her review.
+   (Correction 2026-11-10, raised by a drift check. The earlier text claimed requirement 4 was
+   "met up to the merge approval", which reversed the requirement.)
 3. **Change worker.** A pluggable slot that writes the change: a skill, hook, agent or config
    edit. It always produces a PR with a changelog entry, and never pushes to `main`. This is
    the one piece that needs a model.
@@ -129,7 +138,7 @@ for cand in registry.approved_unexecuted():
 | **E0: design approval** | this proposal | operator answers on the open questions | everything |
 | **E1: intake + authority** | read approved candidates; authority table (default: nothing auto-merges); `held:*` statuses | the executor knows what it may do | E2 |
 | **E2: change worker (kind=skill)** | one worker; PR + changelog against tapestry-patterns | a green PR from an approved candidate, no human authoring | E3 |
-| **E3: install + evaluation watch** | merge on approval; release; telemetry watch | **M2 acceptance:** the tutoring correction becomes an installed skill, and later telemetry shows it invoked | E4 |
+| **E3: install + evaluation watch** | merge within pre-authorized authority (no per-change click); release; telemetry watch | **M2 acceptance:** the tutoring correction becomes an installed skill, and a later session shows the guidance **loaded and followed**. Telemetry showing it was invoked proves loading. Following needs the step-7 behavioral check (plan :16; procedure: "skill creation alone does not establish behavioral success") | E4 |
 | **E4: rollback + more kinds** | revert path; hook and agent workers | the full requirement-4 loop for more than skills | — |
 
 E2 depends on B1 being live, because the evaluation watch reads `artifact_ref`. E3 is the M2
@@ -144,9 +153,12 @@ milestone.
 
 ## Open questions
 
-1. **(Operator) Authority defaults.** Should anything ever auto-merge without your click? If
-   yes, which kinds and risks? The recommended start is nothing, until E3 has proven the
-   evaluation watch on real installs.
+1. **(Operator) Authority: what will you pre-authorize so that M2 can pass?** M2 must install a
+   change "without another user prompt", so at least one (kind, target, risk) has to be authorized
+   in advance. The recommended scope is a single narrow grant: new `kind=skill` additions to
+   tapestry-patterns, with green required checks, rollback armed, and the evaluation watch on.
+   Everything else stays approval-required. Without such a grant, the executor can only ever
+   reach a green PR, and M2 fails by design.
 2. **(Research, Tapestry's) Which change worker runs first.** The candidates are:
    - your GitHub Copilot subscription's coding agent, assigned through an issue (no new
      billing, if your plan includes it);

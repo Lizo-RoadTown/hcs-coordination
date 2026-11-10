@@ -83,11 +83,26 @@ Telemetry ingestion stays here; other modules read it over HTTP.
 
 ## Recommended order of Tapestry's own work
 
-1. Operator-gated safety items that need no move: a logical export of loom-postgres; deploying
-   the-loom #34; pinning the tenant on production memory; giving staging its own credentials.
-2. Registry and policy cutover to tapestry, with the gate fixes. This is Tapestry's core and
-   unblocks the executor.
-3. Executor E1 (intake and authority), approval-required by default.
-4. Hand C2/C3 plan rows to education-lab and lens-core; accept H3 after H6.
-5. Loom_MCP P3 when its pre-flight is complete.
-6. Repoints out (self-observer, then the console with its redirect), after the first loop has run.
+*(Corrected 2026-11-10 after a drift check. The earlier list put the M1 hand-over fourth, behind
+cutovers and executor E1. That quietly de-prioritized the adopted plan, and the operator never
+re-ordered it. M1 stays first.)*
+
+1. **M1 first.**
+   - Real B1 events after the restart into discipline 0.1.27.
+   - **C2** as a one-off classifier run against the production store. It deploys nothing; the
+     deployed cron is education-lab's.
+   - **C3** with lens-core.
+
+   Until education-lab and lens-core accept those rows, Tapestry stays their owner of record.
+2. Operator-gated safety items that need no move (alongside step 1):
+   - a logical export of loom-postgres;
+   - deploying the-loom #34;
+   - pinning the tenant on production memory;
+   - giving staging its own credentials.
+3. Registry and policy cutover to tapestry, with the gate fixes.
+4. Executor E1 (intake and authority). M2 needs a pre-authorized grant (see the executor design,
+   open question 1), not a per-change click.
+5. Accept H3. H6 has landed, and the remaining blocker is the `FLEET_READ_TOKEN` secret.
+6. Loom_MCP P3 when its pre-flight is complete.
+7. Repoints out (the self-observer, then the console with its redirect), after the first loop
+   has run.

@@ -83,6 +83,21 @@ B1/B2 parallel with A2–A4; B3 after A4.
 
 C needs A5 + B1 data. **M1 (`skill-invocation-to-finding`) = A5 + B1 + C1 + C2 + C3 passed.**
 
+> **Status 2026-11-10 (drift-check correction; M1 stays at the head of the path).**
+> - **Done:** A1–A5 (the telemetry cutover, #184–#197) and C1 (#199).
+> - **B1 passed by probe only** (#202, #204). Signed events shaped exactly like the emitter's.
+>   It is **not yet passed by a real plugin-originated Skill event**, which needs discipline
+>   0.1.27 loaded (a restart) and then a real invocation.
+> - **Ownership after the homes decision** (`decision-module-homes-and-operator-answers-2026-11-10`):
+>   - C2's classifier is engine code. Its deployed home is education-lab.
+>   - C3's console is interface code. Its home is lens-core.
+>   - Neither has been accepted there yet, so **until each is accepted, Tapestry remains the
+>     owner of record and M1 is not deprioritized.**
+> - **C2 does not need a deployment.** Its exit proof is "a finding links via artifact_ref +
+>   window to retrievable events". A one-off run of the classifier against the production store
+>   produces that without moving anything twice. The deployed cron is education-lab's to build.
+> - Nothing (cutovers, executor E1) is ordered ahead of M1 unless the operator re-orders it.
+
 ### D — Act = the autonomous repair workflow (pl-011, pl-010, pl-012; requirement 4; procedure steps 6.3–6.7 and 7)
 
 | # | Item | Owner | Effort | Exit proof |
