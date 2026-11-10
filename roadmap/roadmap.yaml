@@ -1,0 +1,413 @@
+# The Lens roadmap: the source of truth. ROADMAP.md is generated from this file.
+# Method: docs/plans/2026-10-21-roadmap-method-proposal.md (approved 2026-10-21).
+# Architecture: docs/architecture/observatories.md (approved 2026-10-21).
+#
+#   python scripts/roadmap.py check     # validate, and confirm ROADMAP.md is current
+#   python scripts/roadmap.py render    # regenerate ROADMAP.md after editing this file
+#
+# Rules: only firm items are built. Loose and hypothesis items say what decides them
+# (decide_when). Done needs evidence. Moving loose -> firm or later -> now is the
+# operator's call and gets a decision entry. Memory and BUILD.md point to item ids;
+# they do not copy items.
+version: 1
+
+# Owners that are not Lens modules.
+owners: [operator, surveyor, tapestry]
+
+# Modules with no item yet, on purpose.
+parked: []
+
+items:
+  # ---------- Phase 0: hygiene and tooling ----------
+  - id: rotate-proves-key
+    title: Rotate the committed PROVES service_role key
+    outcome: The key committed in PROVES_LIBRARY scripts no longer authenticates.
+    horizon: now
+    firmness: firm
+    status: proposed
+    owner: operator
+    exit_check: "human: Supabase shows the old service_role key revoked"
+    decision_ref: surveyor docs/decomposition/proves/backend-inventory.md (security note)
+
+  - id: approve-observatories
+    title: Approve the observatories architecture and roadmap method
+    outcome: Every repo and Tapestry work from one approved picture and method.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: lens-core
+    exit_check: "human: operator approval"
+    evidence: [lens-core a881723]
+
+  - id: siblings-under-lens-log
+    title: Put the four sibling repos under lens-log
+    outcome: Work in lens-ingest, lens-review, lens-serve and lens-observe leaves a log record.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: lens-core
+    exit_check: "git ls-files decomposition.json in each sibling"
+    evidence: [lens-ingest 4f44a63, lens-review 98969f7, lens-serve 7019d56, lens-observe e3f5ccd]
+
+  - id: lens-log-silent-loss-fixes
+    title: Fix lens-log M6, M7, M8
+    outcome: No log entries are silently dropped and enforcement cannot switch itself off.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: surveyor
+    exit_check: "python -m pytest surveyor/plugins/lens-log/tests"
+    evidence: [surveyor a984e18]
+
+  - id: module-map-check
+    title: Module-map change needs an evaluation (lens-log D11)
+    outcome: Adding, splitting, renaming or removing a module cannot happen without a Surveyor evaluation.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: surveyor
+    exit_check: "python -m pytest surveyor/plugins/lens-log/tests/test_module_map.py"
+    evidence: [surveyor a5910e3, lens-core 4ee947b]
+
+  - id: roadmap-as-data
+    title: Roadmap as data with checks
+    outcome: One machine-checked roadmap everyone works from.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: lens-core
+    depends_on: [approve-observatories]
+    exit_check: "python scripts/roadmap.py check"
+    evidence: [lens-core 79f1010]
+
+  - id: install-lens-log-everywhere
+    title: Install lens-log 0.1.5 for every repo (user scope)
+    outcome: The hooks run in every repo that declares a decomposition.json, at one version, with no per-repo install.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: operator
+    exit_check: "installed_plugins.json has one lens-log row, scope user, version 0.1.5; user settings enable it"
+    evidence: ["user-scope install 2026-11-07, 0.1.5; stale project rows (lens-core 0.1.5, education-lab 0.1.4, surveyor 0.1.2) removed; backup installed_plugins.json.bak-2026-11-07-lens-log-global"]
+    revisit_trigger: a session shows an older lens-log version in its hook messages, or a new machine is set up
+
+  - id: log-index-action
+    title: Log-index GitHub Action
+    outcome: Shell edits, misses and cross-repo consistency (pieces vs the whole) are caught in CI.
+    horizon: next
+    firmness: firm
+    status: done
+    owner: lens-core
+    depends_on: [siblings-under-lens-log]
+    exit_check: "CI run lists entries and misses for all Lens repos and fails on a piece that disagrees with the whole"
+    evidence: [lens-core 49e43dd, "log-index run 39726154238 green; bot rebuilt INDEX.md in 3664af3", "consistency failure covered by tests/test_log_index.py"]
+
+  - id: roadmap-check-in-ci
+    title: Run the roadmap check in CI
+    outcome: A pull request cannot leave roadmap.yaml invalid or ROADMAP.md stale.
+    horizon: next
+    firmness: firm
+    status: done
+    owner: lens-core
+    depends_on: [roadmap-as-data]
+    exit_check: "CI fails on a deliberately broken roadmap.yaml"
+    evidence: [lens-core 10a8896, "CI run 39609823937 passed on main", "CI run 39609904466 failed on a deliberately broken roadmap (PR 1, closed)"]
+
+  - id: lens-log-remaining-defects
+    title: Fix lens-log M1, M3, M4, M5
+    outcome: The hook works without a 'python' on PATH, keeps state per repo, resolves paths from the working directory and never overwrites a miss.
+    horizon: next
+    firmness: firm
+    status: done
+    owner: surveyor
+    exit_check: "python -m pytest surveyor/plugins/lens-log/tests"
+    evidence: [surveyor 5d1e804, "92 tests pass", lizo-skills marketplace 2a7036a]
+
+  # ---------- Phase B: the shared standard v1 (lens-core) ----------
+  - id: spine-neutral-names
+    title: Neutral table names in the spine
+    outcome: The standard carries no PROVES table names.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: lens-core
+    touches_bus: [docs/schema/spine.sql]
+    exit_check: "grep finds no PROVES table names in docs/schema"
+    evidence: [lens-core fd1bf6b, "tests/test_spine.py::test_no_reference_system_names_in_the_standard"]
+
+  - id: spine-one-table-choices
+    title: Apply the five approved one-table choices
+    outcome: Each kind of data (relationships, aliases, review state, groups, proposals) has one home.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: lens-core
+    depends_on: [spine-neutral-names]
+    touches_bus: [docs/schema/spine.sql]
+    exit_check: "schema test asserts one table per kind"
+    assumptions: ["surveyor docs/decomposition/proves/module-map.md section 5"]
+    evidence: [lens-core fd1bf6b, "tests/test_spine.py::test_one_table_per_kind_of_data and DB tests, CI run 42440690022 (30 passed, none skipped)"]
+
+  - id: spine-scope-column
+    title: Scope column on every spine table (standard 0.2.0)
+    outcome: Every row belongs to exactly one opaque scope (a registry project id or a carried person id), no reference crosses scopes, and canonical_key is unique per scope.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: lens-core
+    touches_bus: [docs/schema/spine.sql]
+    exit_check: "tests/test_spine.py scope tests pass against Postgres in CI; launcher records standard 0.2.0"
+    consumers: [tapestry, quickprime]
+    decision_ref: lens-core docs/plans/2026-11-07-scope-column-research.md
+    evidence: [lens-core b74ddb8, "CI: 57 passed (7 scope DB tests); installed wheel reports standard 0.2.0"]
+
+  - id: scope-boundary-enforcement
+    title: Enforce the personal and project boundary (policies, crossings, public projects)
+    outcome: Row policies use scope_id; crossing between scopes is authorized and recorded; a public project is kept apart from its owner's personal data.
+    horizon: later
+    firmness: loose
+    status: proposed
+    owner: Loom_MCP
+    note: "re-owned 2026-11-10: each data owner enforces access to its own data (decision-target-architecture-six-modules-2026-11-09); memory's scope boundary is safety-gate item 2"
+    depends_on: [spine-scope-column]
+    consumers: [tapestry, quickprime]
+    decide_when: the operator settles the owner rule for public projects, and the tenancy-home decision names where scope ids live
+    decision_ref: loom memory decision-personal-project-boundary-and-public-projects-2026-11-07
+
+  - id: oversight-tables-home
+    title: Decide whether the oversight tables stay in the spine
+    outcome: lens-core does not absorb workflow oversight's territory by accident.
+    horizon: next
+    firmness: loose
+    status: superseded
+    owner: education-lab
+    note: "decided: the oversight tables go to the adaptive engine (H5; decision-module-homes-and-operator-answers-2026-11-10)"
+    decide_when: the workflow oversight repo is named and has worked its source
+    assumptions: ["surveyor module-map.md section 3 gives area F to oversight"]
+
+  - id: review-promotion-contract
+    title: Review and promotion contract
+    outcome: The database guarantees every verified entry traces to an accept decision on its own candidate (constraints only; lens-review owns promotion code).
+    horizon: now
+    firmness: firm
+    status: done
+    owner: lens-core
+    depends_on: [spine-one-table-choices]
+    touches_bus: [docs/schema/spine.sql]
+    exit_check: "test runs source -> candidate -> decision -> verified on an empty database"
+    evidence: [lens-core 6f45c72, "contract tests in tests/test_spine.py; CI run 42453137049 (38 passed, none skipped)"]
+
+  - id: spine-security-defaults
+    title: No anonymous grants; remove the source_id trigger bug
+    outcome: The standard starts closed and has no broken trigger.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: lens-core
+    touches_bus: [docs/schema/spine.sql]
+    exit_check: "schema test: anon has no grants; all triggers compile"
+    evidence: [lens-core 1658ab2, "tests/test_spine.py::test_hosted_roles_and_strangers_get_nothing, CI run 42440991778 (32 passed)"]
+
+  - id: launcher-applies-spine
+    title: Launcher applies the spine
+    outcome: lens-core stands up the standard on an empty Postgres from LENS_DB_URL, repeatably.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: lens-core
+    depends_on: [spine-security-defaults]
+    exit_check: "lens-core new applies spine.sql twice to an empty database without error"
+    evidence: [lens-core cf7485b, lens-core 6fa0566, "CI run 42453587108: 47 passed; installed wheel printed lens-core 0.0.1 (standard 0.1.0)"]
+
+  # ---------- Phase C: each module derives and builds its own piece ----------
+  - id: ingest-derives-plan
+    title: lens-ingest works its source and records its own plan
+    outcome: lens-ingest has a plan it derived from PROVES, recorded in its log.
+    horizon: now
+    firmness: firm
+    status: superseded
+    owner: QuickPrime
+    note: "lens-ingest dissolved; its intake design feeds verified project knowledge (decision-target-architecture-six-modules-2026-11-09)"
+    depends_on: [siblings-under-lens-log]
+    exit_check: "a decision or process entry in lens-ingest docs/log naming its derived plan"
+    revisit_trigger: the 2026-11-09 decomposition evaluation (adaptive-layer merge) settles where this module belongs
+
+  - id: review-derives-plan
+    title: lens-review works its source and records its own plan
+    outcome: lens-review has a plan it derived from PROVES, recorded in its log.
+    horizon: now
+    firmness: firm
+    status: superseded
+    owner: QuickPrime
+    note: "lens-review dissolved; its review design feeds verified project knowledge (decision-target-architecture-six-modules-2026-11-09)"
+    depends_on: [siblings-under-lens-log]
+    exit_check: "a decision or process entry in lens-review docs/log naming its derived plan"
+    revisit_trigger: the 2026-11-09 decomposition evaluation (adaptive-layer merge) settles where this module belongs
+
+  - id: serve-derives-plan
+    title: lens-serve works its source and records its own plan
+    outcome: lens-serve has a plan it derived from PROVES, recorded in its log.
+    horizon: now
+    firmness: firm
+    status: superseded
+    owner: lens-core
+    note: "lens-serve dissolved; its screens feed the observatory interface, and reads are served by memory and QuickPrime (decision-target-architecture-six-modules-2026-11-09)"
+    depends_on: [siblings-under-lens-log]
+    exit_check: "a decision or process entry in lens-serve docs/log naming its derived plan"
+    revisit_trigger: the 2026-11-09 decomposition evaluation (adaptive-layer merge) settles where this module belongs
+
+  - id: observe-derives-plan
+    title: lens-observe works its source and records its own plan
+    outcome: lens-observe has a plan it derived from PROVES, recorded in its log.
+    horizon: now
+    firmness: firm
+    status: superseded
+    owner: education-lab
+    note: "lens-observe dissolved; signals belong to the adaptive engine (decision-module-homes-and-operator-answers-2026-11-10)"
+    depends_on: [siblings-under-lens-log]
+    exit_check: "a decision or process entry in lens-observe docs/log naming its derived plan"
+    revisit_trigger: the 2026-11-09 decomposition evaluation (adaptive-layer merge) settles where this module belongs
+
+  - id: name-proposed-repos
+    title: Final names for the two proposed repos
+    outcome: workflow oversight and access + tenancy get their final names once the whole decomposition is reconciled.
+    horizon: later
+    firmness: loose
+    status: proposed
+    owner: operator
+    decide_when: the full agreed decomposition is reconciled (tapestry prototype-reconstruction-procedure v0.1, step 8); stable IDs and descriptive labels until then
+    decision_ref: tapestry docs/plans/2026-10-21-master-plan-personal-loop.md section F, rule 3
+
+  - id: program-layer-ids
+    title: Stable pr- component IDs for the program layer
+    outcome: Every Lens module and proposed repo has a stable pr- ID that cross-layer records can cite before final names exist.
+    horizon: next
+    firmness: firm
+    status: done
+    owner: lens-core
+    exit_check: "every module and proposed repo in decomposition.json has a pr- ID, and an entry records the list"
+    consumers: [tapestry]
+    evidence: ["lens-core decomposition.json ids (pr-001 to pr-007), enforced by scripts/roadmap.py check_ids"]
+    decision_ref: tapestry docs/plans/2026-10-21-master-plan-personal-loop.md line 29 (pr- records are owned by lens-core)
+
+  - id: access-tenancy-repo
+    title: Access + tenancy module
+    outcome: Organizations, members, roles, sign-in and row security exist as one module.
+    horizon: later
+    firmness: firm
+    status: superseded
+    owner: Loom_MCP
+    note: "no separate access repo in the six modules; access is enforced by each data owner (decision-target-architecture-six-modules-2026-11-09); the tenancy home stays an open operator decision"
+    depends_on: [spine-scope-column]
+    exit_check: "a second org cannot see the first org's rows (test)"
+
+  - id: workflow-oversight-repo
+    title: Workflow oversight module (pluggable slot)
+    outcome: An agent team that watches pipeline and dashboard health and agent trust, swappable without touching the dashboard.
+    horizon: later
+    firmness: loose
+    status: superseded
+    owner: education-lab
+    note: "agent oversight and trust belong to the adaptive engine (decision-target-architecture-six-modules-2026-11-09)"
+    depends_on: [oversight-tables-home]
+    decide_when: the repo is named and has worked its source
+
+  - id: observe-signal-vocabulary
+    title: One signal package, lens-observe as its program-layer instance
+    outcome: lens-observe instantiates the shared scale-neutral signal package (tapestry pl-001) instead of building a second classifier.
+    horizon: next
+    firmness: loose
+    status: proposed
+    owner: education-lab
+    note: "re-owned 2026-11-10: the engine owns the signal vocabulary (decision-module-homes-and-operator-answers-2026-11-10)"
+    consumers: [tapestry]
+    decide_when: tapestry proposes the pl-001 package; evaluate it against the spine (direction set in tapestry docs/plans/2026-10-21-master-plan-personal-loop.md section F)
+    decision_ref: lens-core docs/handoffs/2026-10-21-two-layer-context-and-tasks.md
+
+  # ---------- Phase D: composition and docs ----------
+  - id: compose-lab
+    title: One command stands up a whole lab
+    outcome: The launcher composes every module against one injected database.
+    horizon: later
+    firmness: firm
+    status: proposed
+    owner: tapestry
+    note: "re-owned 2026-11-10: coordination owns the scaffolder (decision-base-module-standard-owners-and-pilot-2026-11-10); the launcher half goes to QuickPrime with H2"
+    depends_on: [launcher-applies-spine]
+    exit_check: "end-to-end smoke test on a shared test database"
+
+  - id: docs-sites
+    title: Docs agent and docs-site skeleton in every Lens repo
+    outcome: Each repo documents itself from a shared skeleton.
+    horizon: later
+    firmness: firm
+    status: proposed
+    owner: tapestry
+    note: "re-owned 2026-11-10: a docs skeleton becomes part of coordination's base-module starter template (decision-base-module-standard-owners-and-pilot-2026-11-10)"
+    exit_check: "each repo builds its docs site skeleton"
+    assumptions: ["surveyor docs/decomposition/tapestry-docs-precedent.md"]
+
+  # ---------- Coordination with Tapestry and Loom memory ----------
+  - id: lens-meaning
+    title: Settle what "Lens" means across the system
+    outcome: Tapestry's proposal and the approved architecture agree.
+    horizon: now
+    firmness: firm
+    status: done
+    owner: operator
+    consumers: [tapestry]
+    exit_check: "human: operator ruling recorded"
+    evidence: ["loom memory decision-lens-is-the-observatory-memory-is-the-database-2026-11-09: the Lens is the observatory (interface layer + adaptive agents that observe Memory and fix projects by rules); Memory is the database"]
+
+  - id: tenancy-home
+    title: One home for tenancy
+    outcome: Tenancy is owned once (access + tenancy, Loom_MCP or project-registry).
+    horizon: next
+    firmness: loose
+    status: proposed
+    owner: operator
+    consumers: [tapestry]
+    decide_when: Tapestry's breakdown names the Loom_MCP and registry homes
+
+  - id: candidate-flow-one-pattern
+    title: One candidate -> decision flow
+    outcome: Tapestry's architecture-registry promotion and the Lens spine are not two versions of one pattern.
+    horizon: later
+    firmness: hypothesis
+    status: superseded
+    owner: tapestry
+    note: "resolved by function: architecture-registry is coordination's platform-change gate; QuickPrime admits project knowledge separately (position-tapestry-on-five-component-moves-2026-11-09)"
+    consumers: [tapestry]
+    decide_when: Tapestry decides how personal confirmation works
+
+  - id: personal-observatory-reuse
+    title: Personal observatories built from Lens elements
+    outcome: Tapestry and Loom memory reuse published Lens modules, never a runtime dependency.
+    horizon: later
+    firmness: hypothesis
+    status: proposed
+    owner: tapestry
+    consumers: [tapestry]
+    decide_when: Tapestry names which Lens elements it needs
+
+  - id: project-observatory-feeds-shared-graph
+    title: A project observatory can contribute to the shared knowledge graph (QuickPrime)
+    outcome: What a Lens project observatory chooses to share reaches QuickPrime's graph through QuickPrime's contract, and nothing private crosses.
+    horizon: later
+    firmness: loose
+    status: proposed
+    owner: QuickPrime
+    note: "re-owned 2026-11-10: QuickPrime owns admission of contributions (decision-target-architecture-six-modules-2026-11-09)"
+    consumers: [quickprime]
+    decide_when: QuickPrime's research proposes its hook-in contract (which telemetry, how it arrives, how it is checked)
+    decision_ref: loom memory decision-quickprime-is-the-shared-knowledge-graph-2026-11-07
+
+  # ---------- Surveyor ----------
+  - id: teaching-material-handling
+    title: Decide which teaching material comes into Surveyor, and in what form
+    outcome: Surveyor's running records hold what agents are taught, without proprietary material in public.
+    horizon: next
+    firmness: loose
+    status: proposed
+    owner: operator
+    decide_when: the operator rules on FRAMES/IAKM and copy vs summary vs pointer
