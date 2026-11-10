@@ -33,8 +33,8 @@ tapestry = "tapestry_cli.cli:main"
 loom = "tapestry_cli.cli:main"  # deprecated alias
 
 [project.urls]
-Homepage = "https://github.com/Lizo-RoadTown/tapestry"
-Repository = "https://github.com/Lizo-RoadTown/tapestry"
+Homepage = "https://github.com/Lizo-RoadTown/hcs-coordination"
+Repository = "https://github.com/Lizo-RoadTown/hcs-coordination"
 Documentation = "https://tapestry-khaki.vercel.app/"
 
 [tool.setuptools]

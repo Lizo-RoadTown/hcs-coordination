@@ -13,7 +13,7 @@
 The two pieces a consuming project installs in their Claude Code session:
 
 ```text
-/plugin marketplace add Lizo-RoadTown/tapestry
+/plugin marketplace add Lizo-RoadTown/hcs-coordination
 /plugin install tapestry-discipline@tapestry
 /plugin install tapestry-patterns@tapestry
 ```
