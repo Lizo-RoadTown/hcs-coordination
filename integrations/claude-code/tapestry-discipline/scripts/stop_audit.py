@@ -389,47 +389,48 @@ def _in_scope(cwd) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Permanent report persistence (v0.1.19)
+# Report persistence (v0.1.19; v0.1.28: out of the working repo)
 # ---------------------------------------------------------------------------
 #
-# The upskilling report is written to loom-memory by the agent. That record is
-# remote and ephemeral for documentation purposes. This persists the SAME report
-# body to a committed on-disk Markdown file so it can be sifted for docs and
-# post-mortems from the repo itself. Best-effort; NEVER raises (Stop-hook contract).
+# The upskilling report is written to loom-memory by the agent. This also keeps
+# the SAME body as a Markdown file for docs and post-mortems. Best-effort; NEVER
+# raises (Stop-hook contract).
+#
+# v0.1.28 (operator decision 2026-11-10): reports are NEVER written into or
+# committed to the working repo. Writing personal session text into whatever
+# repo the session runs in carried it into project repos (QuickPrime's boundary
+# rule forbids exactly that), and the per-session commits were the fleet's main
+# source of merge conflicts. Location, in order:
+#   1. $TAPESTRY_SHARED_DIR/<project>/session-reports/  (ADR-0010 shared space;
+#      OneDrive syncs it across the operator's machines)
+#   2. <dir named by the repo's .tapestry-shared.local pointer>/session-reports/
+#   3. ~/.claude/session-reports/<project>/              (local fallback)
+# The folder is created only when a report is written (no placeholder files).
 
 _REPORT_DATE_RE = re.compile(r"(\d{4})_(\d{2})_(\d{2})")
 
 
-def _autocommit_report(cwd, path, msg):
-    """Pathspec-commit ONLY the report file, leaving any staged agent work
-    untouched. Best-effort; never raises."""
-    import subprocess
+def _report_dir(cwd: Path) -> Path:
+    """Where this project's session reports go. Never inside the working repo."""
+    slug = (os.environ.get("LOOM_PROJECT_ID", "").strip() or cwd.name or "project")
+    slug = re.sub(r"[^A-Za-z0-9._-]+", "-", slug)
+    shared = os.environ.get("TAPESTRY_SHARED_DIR", "").strip()
+    if shared:
+        return Path(shared) / slug / "session-reports"
+    pointer = cwd / ".tapestry-shared.local"
     try:
-        inside = subprocess.run(
-            ["git", "-C", str(cwd), "rev-parse", "--is-inside-work-tree"],
-            capture_output=True, text=True, timeout=10,
-        )
-        if inside.returncode != 0 or inside.stdout.strip() != "true":
-            return
-        subprocess.run(
-            ["git", "-C", str(cwd), "add", "--", str(path)],
-            capture_output=True, timeout=10,
-        )
-        # `git commit -- <path>` is a pathspec commit: only this path is committed,
-        # regardless of what else is staged in the index.
-        subprocess.run(
-            ["git", "-C", str(cwd), "commit", "-m", msg, "--", str(path)],
-            capture_output=True, timeout=15,
-        )
-    except Exception:  # noqa: BLE001
-        pass
+        target = pointer.read_text(encoding="utf-8").strip() if pointer.is_file() else ""
+    except OSError:
+        target = ""
+    if target:
+        return Path(target) / "session-reports"
+    return Path.home() / ".claude" / "session-reports" / slug
 
 
 def _persist_report_to_disk(cwd_str, session_id, content, record_name):
-    """Write the emitted upskilling report to
-    <cwd>/docs/session-reports/<YYYY-MM-DD>-<session8>.md and best-effort commit
-    it. Idempotent (identical content = no-op). Returns the path str or None.
-    NEVER raises."""
+    """Write the emitted upskilling report to <_report_dir>/<YYYY-MM-DD>-<session8>.md.
+    Never writes into or commits to the working repo. Idempotent (identical
+    content = no-op). Returns the path str or None. NEVER raises."""
     try:
         if not content or not content.strip():
             return None
@@ -437,7 +438,7 @@ def _persist_report_to_disk(cwd_str, session_id, content, record_name):
         m = _REPORT_DATE_RE.search(record_name or "")
         date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else time.strftime("%Y-%m-%d")
         sid8 = re.sub(r"[^a-zA-Z0-9]+", "", session_id or "")[:8] or "session"
-        reports_dir = cwd / "docs" / "session-reports"
+        reports_dir = _report_dir(cwd)
         reports_dir.mkdir(parents=True, exist_ok=True)
         path = reports_dir / f"{date}-{sid8}.md"
         header = (
@@ -456,7 +457,6 @@ def _persist_report_to_disk(cwd_str, session_id, content, record_name):
             except OSError:
                 pass
         path.write_text(body, encoding="utf-8")
-        _autocommit_report(cwd, path, f"chore(session-report): {path.name} [tapestry-discipline]")
         return str(path)
     except Exception:  # noqa: BLE001
         return None

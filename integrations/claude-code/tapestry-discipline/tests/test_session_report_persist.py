@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import sys
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -65,52 +66,78 @@ class ScanCapturesReport(unittest.TestCase):
 
 
 class PersistReport(unittest.TestCase):
+    """v0.1.28: reports go to the shared space or ~/.claude, never into the repo."""
+
     def setUp(self):
-        # Never touch git in these tests — isolate the file write from auto-commit.
-        self._patch = mock.patch.object(stop_audit, "_autocommit_report", lambda *a, **k: None)
-        self._patch.start()
+        self._tmp = tempfile.TemporaryDirectory()
+        base = Path(self._tmp.name)
+        self.repo = base / "repo"; self.repo.mkdir()
+        self.shared = base / "shared"
+        self.home = base / "home"
+        self._env = mock.patch.dict(os.environ, {"TAPESTRY_SHARED_DIR": str(self.shared),
+                                                 "LOOM_PROJECT_ID": "proj"}, clear=False)
+        self._env.start()
+        self._home = mock.patch.object(Path, "home", lambda: self.home)
+        self._home.start()
 
     def tearDown(self):
-        self._patch.stop()
+        self._home.stop(); self._env.stop(); self._tmp.cleanup()
 
-    def test_writes_file_with_header_and_body(self):
-        with tempfile.TemporaryDirectory() as d:
-            content = "# Upskilling report\n\nSkills invoked: foo (3 uses)"
+    def _assert_repo_untouched(self):
+        self.assertFalse((self.repo / "docs" / "session-reports").exists(),
+                         "a report was written into the working repo")
+
+    def test_writes_to_shared_space_with_header_and_body(self):
+        content = "# Upskilling report\n\nSkills invoked: foo (3 uses)"
+        out = stop_audit._persist_report_to_disk(
+            str(self.repo), "abcd1234efgh", content, "upskilling_report_session_2026_08_29")
+        p = Path(out)
+        self.assertEqual(p, self.shared / "proj" / "session-reports" / "2026-08-29-abcd1234.md")
+        text = p.read_text(encoding="utf-8")
+        self.assertIn("session: abcd1234efgh", text)
+        self.assertIn("memory_record: upskilling_report_session_2026_08_29", text)
+        self.assertIn("Skills invoked: foo (3 uses)", text)
+        self._assert_repo_untouched()
+
+    def test_pointer_file_used_when_no_env(self):
+        target = Path(self._tmp.name) / "pointed"
+        (self.repo / ".tapestry-shared.local").write_text(str(target) + "\n", encoding="utf-8")
+        with mock.patch.dict(os.environ, {"TAPESTRY_SHARED_DIR": ""}):
             out = stop_audit._persist_report_to_disk(
-                d, "abcd1234efgh", content, "upskilling_report_session_2026_08_29"
-            )
-            self.assertIsNotNone(out)
-            p = Path(out)
-            self.assertTrue(p.exists())
-            self.assertEqual(p.name, "2026-08-29-abcd1234.md")  # date from record name, sid8
-            text = p.read_text(encoding="utf-8")
-            self.assertIn("session: abcd1234efgh", text)
-            self.assertIn("memory_record: upskilling_report_session_2026_08_29", text)
-            self.assertIn("Skills invoked: foo (3 uses)", text)
+                str(self.repo), "abcd1234", "# body", "upskilling_report_session_2026_08_29")
+        self.assertEqual(Path(out).parent, target / "session-reports")
+        self._assert_repo_untouched()
+
+    def test_falls_back_to_claude_home(self):
+        with mock.patch.dict(os.environ, {"TAPESTRY_SHARED_DIR": ""}):
+            out = stop_audit._persist_report_to_disk(
+                str(self.repo), "abcd1234", "# body", "upskilling_report_session_2026_08_29")
+        self.assertEqual(Path(out).parent, self.home / ".claude" / "session-reports" / "proj")
+        self._assert_repo_untouched()
+
+    def test_never_invokes_git(self):
+        with mock.patch("subprocess.run", side_effect=AssertionError("git must not run")):
+            out = stop_audit._persist_report_to_disk(
+                str(self.repo), "abcd1234", "# body", "upskilling_report_session_2026_08_29")
+        self.assertIsNotNone(out)
 
     def test_idempotent_second_call_noop(self):
-        with tempfile.TemporaryDirectory() as d:
-            args = (d, "abcd1234", "# Report body", "upskilling_report_session_2026_08_29")
-            first = stop_audit._persist_report_to_disk(*args)
-            second = stop_audit._persist_report_to_disk(*args)
-            self.assertIsNotNone(first)
-            self.assertIsNone(second)  # identical content -> no rewrite
+        args = (str(self.repo), "abcd1234", "# Report body", "upskilling_report_session_2026_08_29")
+        self.assertIsNotNone(stop_audit._persist_report_to_disk(*args))
+        self.assertIsNone(stop_audit._persist_report_to_disk(*args))
 
     def test_changed_content_rewrites(self):
-        with tempfile.TemporaryDirectory() as d:
-            base = (d, "abcd1234", None, "upskilling_report_session_2026_08_29")
-            stop_audit._persist_report_to_disk(d, "abcd1234", "v1", base[3])
-            out = stop_audit._persist_report_to_disk(d, "abcd1234", "v2", base[3])
-            self.assertIsNotNone(out)  # different content -> rewrite
-            self.assertIn("v2", Path(out).read_text(encoding="utf-8"))
+        name = "upskilling_report_session_2026_08_29"
+        stop_audit._persist_report_to_disk(str(self.repo), "abcd1234", "v1", name)
+        out = stop_audit._persist_report_to_disk(str(self.repo), "abcd1234", "v2", name)
+        self.assertIn("v2", Path(out).read_text(encoding="utf-8"))
 
-    def test_empty_content_noop(self):
-        with tempfile.TemporaryDirectory() as d:
-            out = stop_audit._persist_report_to_disk(
-                d, "sid", "   ", "upskilling_report_session_2026_08_29"
-            )
-            self.assertIsNone(out)
-            self.assertFalse((Path(d) / "docs" / "session-reports").exists())
+    def test_empty_content_noop_and_no_folder_created(self):
+        out = stop_audit._persist_report_to_disk(
+            str(self.repo), "sid", "   ", "upskilling_report_session_2026_08_29")
+        self.assertIsNone(out)
+        self.assertFalse(self.shared.exists())  # folder only created when a report is written
+        self._assert_repo_untouched()
 
 
 class ResolverGlob(unittest.TestCase):
