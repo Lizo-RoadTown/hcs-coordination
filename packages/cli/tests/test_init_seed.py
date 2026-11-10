@@ -87,6 +87,21 @@ def test_gitignore_has_env_and_snapshot_block(tmp_path):
     assert "\n.env\n" in "\n" + gi + "\n"
     assert "docs/architecture-snapshots/*" in gi
     assert "!docs/architecture-snapshots/.gitkeep" in gi
+    # Auto session-reports from the Stop hook must not accrue as chore commits.
+    assert "docs/session-reports/" in gi
+    # Registry UUID + local context must stay untracked (project-launch kit table).
+    assert ".project-intelligence/" in gi
+
+
+def test_ensure_git_repo_inits_on_main_idempotent(tmp_path):
+    # A fresh dir is not a repo; init one on main so the ADR 0010 guard can activate.
+    assert not (tmp_path / ".git").exists()
+    init._ensure_git_repo(tmp_path)
+    assert (tmp_path / ".git").exists()
+    assert "refs/heads/main" in (tmp_path / ".git" / "HEAD").read_text(encoding="utf-8")
+    # idempotent: an existing repo is left untouched (no error, still main)
+    init._ensure_git_repo(tmp_path)
+    assert "refs/heads/main" in (tmp_path / ".git" / "HEAD").read_text(encoding="utf-8")
 
 
 def test_gitignore_appends_missing_lines_without_clobber(tmp_path):

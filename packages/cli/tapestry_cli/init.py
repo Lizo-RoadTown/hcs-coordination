@@ -468,6 +468,10 @@ _GITIGNORE_LINES = [
     "# MCP config — references a secret env var by name; per-machine, not committed",
     ".mcp.json",
     "",
+    "# Project intelligence — registry UUID + local context/skills the observer reads.",
+    "# Per the project-launch kit table: local, never committed.",
+    ".project-intelligence/",
+    "",
     "# Architecture snapshots — auto-written by the tapestry-discipline SessionStart",
     "# hook every session. Local feedback, not repo history. .gitkeep preserves the dir.",
     "docs/architecture-snapshots/*",
@@ -479,6 +483,13 @@ _GITIGNORE_LINES = [
     "# the .shared symlink itself is ignored, not just a .shared/ directory.",
     ".shared",
     ".tapestry-shared.local",
+    "",
+    "# Auto session-reports — the tapestry-discipline Stop hook writes (and tries to",
+    "# commit) docs/session-reports/<date>-<session>.md each session. Ignoring the dir",
+    "# keeps them out of this repo's history (the report also goes to loom-memory), and",
+    "# the hook's `git add` then no-ops instead of minting chore commits. Delete this",
+    "# line if you want a committed session-report trail (tapestry itself keeps one).",
+    "docs/session-reports/",
 ]
 
 _DOCS_ARCHITECTURE_README = """# Architecture
@@ -834,6 +845,31 @@ def add_arguments(p: argparse.ArgumentParser) -> None:
                    help="Skip the 'looks like a project' pre-check.")
 
 
+def _ensure_git_repo(project_dir: Path) -> None:
+    """Ensure project_dir is a git repo (on `main`) so the ADR 0010 private-files
+    guard applies — it activates via `core.hooksPath`, which needs `.git` to
+    exist (see _seed_guard). A freshly created directory isn't a repo yet.
+    Idempotent (an existing repo is left untouched). Best-effort; never aborts init."""
+    if (project_dir / ".git").exists():
+        return
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(project_dir), "init", "--initial-branch=main"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if r.returncode != 0:
+            # Older git (<2.28) has no --initial-branch: plain init, then point
+            # HEAD at main (works pre-commit, unlike `git branch -m`).
+            subprocess.run(["git", "-C", str(project_dir), "init"],
+                           capture_output=True, text=True, timeout=10, check=True)
+            subprocess.run(["git", "-C", str(project_dir), "symbolic-ref", "HEAD", "refs/heads/main"],
+                           capture_output=True, text=True, timeout=10)
+        print("  git init (branch main)")
+    except (OSError, subprocess.SubprocessError) as e:  # noqa: BLE001
+        print(f"  WARN: git init failed ({e}); the private-files guard's core.hooksPath "
+              f"won't activate until you run `git init` here.")
+
+
 def run(args: argparse.Namespace) -> int:
     """Execute the init flow. Returns POSIX exit code."""
     project_dir = Path.cwd()
@@ -856,6 +892,10 @@ def run(args: argparse.Namespace) -> int:
             print(f"error: {project_dir} doesn't look like a project (no .git, no files).", file=sys.stderr)
             print(f"       Pass --force to override.", file=sys.stderr)
             return 1
+
+    # Ensure a git repo exists (on main) before the later guard seeding — the
+    # ADR 0010 pre-commit guard activates via core.hooksPath, which needs .git.
+    _ensure_git_repo(project_dir)
 
     print(f"--> [1/6] Check Project Registry for existing slug '{args.slug}'...")
     _warm_registry(args.registry_url)

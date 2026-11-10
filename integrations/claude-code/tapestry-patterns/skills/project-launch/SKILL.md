@@ -50,10 +50,14 @@ Recorded in loom-memory `feedback-equip-new-projects-fully-not-just-docs-2026-11
    | `.project-intelligence/` + registry UUID | repo root | NO — local/untracked |
    | `.env` with `LOOM_PROJECT_ID=<slug>` | repo root | NO |
    | `.mcp.json` → loom-memory, `${TAPESTRY_MEMORY_API_KEY}` env-ref (never a literal key) | repo root | NO |
-   | `.claude/settings.json` enabling `tapestry-discipline@tapestry` + `tapestry-patterns@tapestry` | repo root | yes |
+   | `.claude/settings.json` (plugin enablement) | repo root | **not minted by `init`** — optional, decided per-project (operator decision 2026-11-09). The tapestry plugins apply via global/user scope regardless; add a project `.claude/settings.json` only if this repo needs extra or pinned plugins. |
    | `.gitignore` covering `.env`, `.mcp.json`, `.project-intelligence/`, `.shared`, `.tapestry-shared.local` | repo root | yes |
    | CLAUDE.md / AGENTS.md | repo root | yes |
    | docs skeleton (adr/, architecture/) | docs/ | yes |
+
+   `tapestry init` also runs `git init` (branch `main`) when the directory is not yet a
+   repo, and activates the ADR 0010 private-files guard via `core.hooksPath` — so a fresh
+   project is a working, guarded repo out of the box.
 
 4. **CUSTOMIZE on top** — charter, domain docs, code, extra plugins (e.g. `lens-log`),
    project-specific rules. Customization never replaces skeleton pieces; it adds to them.
