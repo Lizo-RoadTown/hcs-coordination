@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "role": "piece",
+  "module": "tapestry",
+  "surfaces": [
+    {
+      "name": "identity",
+      "paths": ["CLAUDE.md", "AGENTS.md", "MANIFESTO.md", "docs/CORE_DIRECTIVES.md"],
+      "on": "write",
+      "entry": "decision"
+    },
+    {
+      "name": "definition",
+      "paths": ["decomposition.json", "docs/adr/**", "docs/architecture/UMBRELLA.md"],
+      "on": "write",
+      "entry": "decision"
+    }
+  ]
+}
